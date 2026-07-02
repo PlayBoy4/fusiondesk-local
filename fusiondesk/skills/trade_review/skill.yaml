@@ -1,0 +1,34 @@
+name: trade_review
+
+description: >
+  Analyze completed trades using the TradeMaster framework.
+
+inputs:
+  - ticker
+  - direction
+  - entry
+  - exit
+  - timeframe
+  - thesis
+  - notes
+
+outputs:
+  - trade_grade
+  - thesis_grade
+  - execution_grade
+  - risk_grade
+  - lessons
+  - memory_update
+
+primary_seat:
+  deepseek
+
+escalation:
+  - sonnet
+  - opus
+
+memory:
+  enabled: true
+
+loop:
+  enabled: true
