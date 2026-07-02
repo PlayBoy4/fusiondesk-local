@@ -1,0 +1,57 @@
+{
+  "module_id": "social_studio",
+  "name": "Social Studio",
+  "type": "fusiondesk_plugin_module",
+  "status": "definition_only",
+  "description": "Social content automation module for strategy, research, creation, approval, scheduling, analytics, and AI media repurposing. This module is intentionally not hardcoded into the core engine.",
+  "skill_ids": [
+    "social_studio.social_strategy",
+    "social_studio.trend_research",
+    "social_studio.content_calendar",
+    "social_studio.brand_voice_generation",
+    "social_studio.social_post_generation",
+    "social_studio.carousel_generation",
+    "social_studio.short_video_generation",
+    "social_studio.podcast_repurposing",
+    "social_studio.approval_workflow",
+    "social_studio.social_scheduler",
+    "social_studio.social_analytics",
+    "social_studio.competitor_monitor",
+    "social_studio.viral_hook_generator",
+    "social_studio.ugc_script_generation",
+    "social_studio.ad_creative_generation"
+  ],
+  "connector_dependencies": [
+    "agent_reach",
+    "openrouter",
+    "local_filesystem",
+    "runpod",
+    "social_instagram",
+    "social_facebook",
+    "social_linkedin",
+    "social_threads",
+    "social_youtube",
+    "social_tiktok"
+  ],
+  "approval_modes": [
+    "none",
+    "manual",
+    "business_owner",
+    "client",
+    "scheduled_publish"
+  ],
+  "analytics_loop": [
+    "views",
+    "ctr",
+    "watch_time",
+    "comments",
+    "followers",
+    "conversions",
+    "memory_feedback"
+  ],
+  "safety_notes": [
+    "Publishing connectors are planned placeholders until platform credentials, permissions, and review workflows are configured.",
+    "Client approval and brand safety checks should be explicit before publishing.",
+    "Analytics feedback should avoid storing secrets or private account exports outside approved storage."
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fusiondesk.skill.v1",
+  "title": "FusionDesk Skill Definition",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "category",
+    "description",
+    "trigger_phrases",
+    "required_tools",
+    "input_schema",
+    "output_schema",
+    "default_mode",
+    "required_seats",
+    "optional_seats",
+    "preferred_model_traits",
+    "recommended_model_seats",
+    "safety_risk_notes",
+    "examples"
+  ],
+  "properties": {
+    "id": {"type": "string"},
+    "name": {"type": "string"},
+    "category": {"type": "string"},
+    "module": {"type": "string"},
+    "description": {"type": "string"},
+    "trigger_phrases": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "required_tools": {"type": "array", "items": {"type": "string"}},
+    "input_schema": {"type": "object"},
+    "output_schema": {"type": "object"},
+    "default_mode": {"type": "string", "enum": ["SOLO", "RELAY", "PANEL", "TRINITY"]},
+    "required_seats": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["planner", "researcher", "builder", "reviewer", "risk_checker", "clarity_writer", "judge", "memory", "evidence_checker", "media_analyzer", "copywriter", "ads_auditor", "data_analyst", "creative_director", "seo_optimizer", "brand_guard"]
+      },
+      "minItems": 1
+    },
+    "optional_seats": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["planner", "researcher", "builder", "reviewer", "risk_checker", "clarity_writer", "judge", "memory", "evidence_checker", "media_analyzer", "copywriter", "ads_auditor", "data_analyst", "creative_director", "seo_optimizer", "brand_guard"]
+      }
+    },
+    "preferred_model_traits": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "recommended_model_seats": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "safety_risk_notes": {"type": "array", "items": {"type": "string"}},
+    "examples": {"type": "array", "items": {"type": "object"}, "minItems": 1}
+  },
+  "additionalProperties": true
+}

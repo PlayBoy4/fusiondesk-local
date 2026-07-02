@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claude Stack Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="holo-grid"></div>
+    <div class="scanline"></div>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="/assets/logo.png" alt="" />
+          <div>
+            <strong>Stark Stack</strong>
+            <span>Local AI Control</span>
+          </div>
+        </div>
+        <nav>
+          <button class="nav active" data-view="chat">Chat</button>
+          <button class="nav" data-view="stack">Stack</button>
+          <button class="nav" data-view="seats">Seats</button>
+          <button class="nav" data-view="brain">Brain</button>
+          <button class="nav" data-view="phone">Phone</button>
+          <button class="nav" data-view="logs">Logs</button>
+        </nav>
+        <div class="side-status">
+          <span id="serverDot" class="dot"></span>
+          <div>
+            <strong id="serverLabel">Checking</strong>
+            <span id="serverSub">Local model</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Arc reactor online · local-first command layer</p>
+            <h1>Stark-grade local AI cockpit.</h1>
+          </div>
+          <div class="reactor" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <b>AI</b>
+          </div>
+          <div class="actions">
+            <button id="refreshBtn" class="icon-btn" title="Refresh status">↻</button>
+            <button id="startBtn" class="primary">Start Model</button>
+          </div>
+        </header>
+
+        <section id="chat" class="view active">
+          <div class="chat-layout">
+            <div class="chat-panel">
+              <div id="messages" class="messages">
+                <div class="message assistant">
+                  <div class="avatar">CL</div>
+                  <div class="message-body">
+                    <div class="bubble">
+                      <strong>Local AI Console</strong>
+                      <p>Ask the local model here. Use the mic to speak a command when your browser allows voice input.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <form id="chatForm" class="composer">
+                <textarea id="prompt" rows="1" placeholder="Ask your local model anything..."></textarea>
+                <button id="micBtn" class="tool-btn" type="button" title="Speak command">Mic</button>
+                <button class="send" type="submit">Send</button>
+              </form>
+            </div>
+            <div class="mini">
+              <h2>Session</h2>
+              <div class="metric"><span>Model</span><strong id="modelName">-</strong></div>
+              <div class="metric"><span>Claude Code</span><strong id="claudeVersion">-</strong></div>
+              <div class="metric"><span>Phone URL</span><strong id="lanUrl">-</strong></div>
+              <div class="metric"><span>Session</span><strong id="sessionStatus">Checking</strong></div>
+              <div class="metric"><span>Telegram</span><strong id="telegramStatus">Checking</strong></div>
+              <div class="route-status">
+                <div><span>FusionDesk</span><strong id="routerStatus">Checking</strong></div>
+                <div><span>Seat Engine</span><strong id="seatEngineStatus">Idle</strong></div>
+                <div><span>Local Qwen</span><strong id="localModelStatus">Checking</strong></div>
+              </div>
+              <div class="voice-controls">
+                <button id="copyChatBtn" class="wide">Copy Chat</button>
+                <button id="voiceReplyBtn" class="wide" aria-pressed="false">Voice Replies Off</button>
+                <button id="stopVoiceBtn" class="wide">Stop Voice</button>
+              </div>
+              <p id="voiceStatus" class="muted voice-status">Voice idle.</p>
+              <button id="openClaudeBtn" class="wide">Open Claude Local</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="stack" class="view">
+          <div class="grid">
+            <article class="panel">
+              <h2>Model Server</h2>
+              <p class="muted">MLX Anthropic-compatible endpoint on port 4000.</p>
+              <div class="big-status"><span id="stackDot" class="dot"></span><strong id="stackStatus">Checking</strong></div>
+              <div class="button-row">
+                <button id="startModelBtn" class="primary">Start</button>
+                <button id="stopModelBtn">Stop</button>
+              </div>
+            </article>
+            <article class="panel">
+              <h2>Installed Pieces</h2>
+              <div class="check-row"><span id="cacheCheck"></span><p>Local Qwen model cache</p></div>
+              <div class="check-row"><span id="launcherCheck"></span><p>Desktop Claude launcher</p></div>
+              <div class="check-row"><span id="phoneCheck"></span><p>Phone bridge scripts</p></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="seats" class="view">
+          <div class="seat-layout">
+            <article class="panel">
+              <p class="eyebrow">FusionDesk routing core</p>
+              <h2>Dynamic Seat Assignment</h2>
+              <form id="seatForm" class="seat-form">
+                <label>
+                  <span>Task</span>
+                  <textarea id="seatTask" rows="3" placeholder="Example: research competitors and write a campaign plan"></textarea>
+                </label>
+                <div class="form-grid">
+                  <label>
+                    <span>Skill</span>
+                    <input id="seatSkill" list="skillList" value="research.web_research" />
+                    <datalist id="skillList">
+                      <option value="development.bug_fixing"></option>
+                      <option value="development.code_review"></option>
+                      <option value="trademaster.live_market_analysis"></option>
+                      <option value="marketing.campaign_planning"></option>
+                      <option value="marketing.ad_copy"></option>
+                      <option value="research.web_research"></option>
+                      <option value="research.tool_evaluation"></option>
+                      <option value="business.automation_planning"></option>
+                      <option value="ai_media.runpod_workflow_planning"></option>
+                    </datalist>
+                  </label>
+                  <label>
+                    <span>Mode</span>
+                    <select id="seatMode">
+                      <option value="">Auto</option>
+                      <option>SOLO</option>
+                      <option>RELAY</option>
+                      <option>PANEL</option>
+                      <option>TRINITY</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Cost</span>
+                    <select id="seatCost">
+                      <option>balanced</option>
+                      <option>cheapest</option>
+                      <option>premium</option>
+                      <option>fastest</option>
+                      <option>highest_quality</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Quality</span>
+                    <select id="seatQuality">
+                      <option>balanced</option>
+                      <option>highest_quality</option>
+                      <option>premium</option>
+                      <option>fastest</option>
+                      <option>cheapest</option>
+                    </select>
+                  </label>
+                </div>
+                <button class="primary" type="submit">Assign Seats</button>
+              </form>
+            </article>
+            <article class="panel">
+              <h2>Assignment Result</h2>
+              <div id="seatSummary" class="seat-summary">
+                <p class="muted">Run an assignment to see selected skill, connectors, model seats, confidence, and warnings.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="brain" class="view">
+          <div class="brain-layout">
+            <article class="panel flint-hero">
+              <div>
+                <p class="eyebrow">Digital brain module</p>
+                <h2>Flint Memory Core</h2>
+                <p class="muted">Markdown notes, linked knowledge graph, infinite canvas, and optional local AI memory. It stays local, which fits this stack nicely.</p>
+              </div>
+              <div class="orbital" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+            </article>
+            <article class="panel">
+              <h2>Flint Status</h2>
+              <div class="big-status"><span id="flintDot" class="dot"></span><strong id="flintStatus">Checking</strong></div>
+              <div class="button-row">
+                <button id="flintGithubBtn" class="primary">Open Flint GitHub</button>
+              </div>
+              <p class="muted install-note">I added Flint as a dashboard module. I did not run its internet installer automatically.</p>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Install Command</h2>
+              <p class="muted">Review the repo first. When you want to install Flint, run this manually on the Mac:</p>
+              <code id="flintInstall">curl -fsSL https://raw.githubusercontent.com/Chintanpatel24/flint/main/install.sh | bash</code>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Why it belongs here</h2>
+              <div class="feature-strip">
+                <span>Local vault</span>
+                <span>Note graph</span>
+                <span>Infinite canvas</span>
+                <span>AI memory</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="phone" class="view">
+          <div class="grid">
+            <article class="panel">
+              <h2>iMessage Bridge</h2>
+              <p class="muted">Current route: <strong id="phoneTarget">-</strong></p>
+              <button id="phoneTestBtn" class="primary">Send Test Message</button>
+            </article>
+            <article class="panel">
+              <h2>Phone Control</h2>
+              <p class="muted">Start Claude on the Mac, then run this in that same session so your phone becomes the keyboard.</p>
+              <code>bash ~/.claude/imessage-toggle.sh</code>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Cleaner Phone Remote</h2>
+              <p class="muted">Open the dashboard from your phone on the same Wi-Fi. This avoids the iMessage echo problem entirely.</p>
+              <code id="phoneUrl">http://your-mac-ip:4899</code>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Telegram Bot</h2>
+              <p class="muted">Optional iPhone command path. Set a bot token in your local `.env`, then restart the persistent dashboard service.</p>
+              <code>TELEGRAM_BOT_ENABLED=true
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_ALLOWED_CHAT_ID=your_chat_id</code>
+            </article>
+          </div>
+        </section>
+
+        <section id="logs" class="view">
+          <article class="panel log-panel">
+            <h2>MLX Server Log</h2>
+            <pre id="logBox"></pre>
+          </article>
+        </section>
+      </main>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

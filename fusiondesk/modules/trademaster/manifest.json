@@ -1,0 +1,22 @@
+{
+  "module_id": "trademaster",
+  "name": "TradeMaster",
+  "type": "fusiondesk_plugin_module",
+  "status": "definition_only",
+  "description": "Trading analysis module built on FusionDesk skills and connectors. This module is intentionally not hardcoded into the core engine.",
+  "skill_ids": [
+    "trademaster.live_market_analysis",
+    "trademaster.premium_floor_detection",
+    "trademaster.session_recap_extraction",
+    "trademaster.thesis_validation",
+    "trademaster.risk_review",
+    "trademaster.daily_premarket_plan"
+  ],
+  "connector_dependencies": ["polygon_io", "agent_reach", "openrouter"],
+  "safety_notes": [
+    "TradeMaster provides decision support only and does not provide financial advice.",
+    "Market data must be timestamped and source-labeled.",
+    "High-risk options workflows should default to TRINITY or include risk review."
+  ]
+}
+

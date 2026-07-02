@@ -1,0 +1,132 @@
+{
+  "notes_version": "0.1.0",
+  "tools_and_repos": [
+    {
+      "name": "G0DM0D3",
+      "type": "repo_reference",
+      "status": "model_profile_defined",
+      "model_profile_id": "godmode-local",
+      "notes": "Reserved as the user's godmode clone reference and added to FusionDesk as a provisional local model profile. Do not mark executable until the actual repo path, launch command, and health check are known."
+    },
+    {
+      "name": "FLUX Fusion",
+      "type": "image_media_workflow",
+      "status": "reference_only",
+      "notes": "Potential image workflow reference for AI Media skills. Keep behind connector contracts and workflow notes."
+    },
+    {
+      "name": "Ponytail",
+      "type": "development_mode",
+      "status": "defined",
+      "notes": "Minimal implementation mode: smallest useful change, local patterns, low abstraction, focused verification."
+    },
+    {
+      "name": "Wan2GP",
+      "type": "video_generation_workflow",
+      "status": "reference_only",
+      "notes": "Potential video generation workflow. Use ai_media.comfyui_wan2gp_workflow_notes before any install or RunPod launch."
+    },
+    {
+      "name": "VoxCPM2",
+      "type": "voice_workflow",
+      "status": "reference_only",
+      "notes": "Potential voice/TTS workflow. Requires licensing and voice consent review before commercial or cloning use."
+    },
+    {
+      "name": "OBLITERATUS",
+      "type": "repo_reference",
+      "status": "reference_only",
+      "notes": "Reserved as a referenced repo/tool name. Evaluate before integration."
+    },
+    {
+      "name": "OpenRouter",
+      "type": "model_gateway",
+      "status": "connector_defined",
+      "connector_id": "openrouter",
+      "notes": "Use through the OpenRouter connector, not direct provider calls from core orchestration."
+    },
+    {
+      "name": "RunPod",
+      "type": "gpu_compute",
+      "status": "connector_defined",
+      "connector_id": "runpod",
+      "notes": "Use through the RunPod connector. Always track GPU cost and shutdown plan."
+    },
+    {
+      "name": "JayWebtech/autoshorts",
+      "type": "repo_reference",
+      "category": "AI Media",
+      "purpose": "Long-form video/audio to short-form clips",
+      "stack": [
+        "Tauri 2",
+        "React",
+        "TSX",
+        "Rust",
+        "SQLite"
+      ],
+      "use_cases": [
+        "B2B content repurposing",
+        "podcast clips",
+        "agency content",
+        "TradeMaster recap clips",
+        "daycare marketing clips"
+      ],
+      "integration_status": "reference_only",
+      "status": "reference_only",
+      "notes": "Do not install yet. Evaluate as a possible AI Media workflow reference for ai_media.auto_short_clip_generation."
+    },
+    {
+      "name": "AgriciDaniel/claude-ads",
+      "type": "repo_reference",
+      "category": "Marketing",
+      "purpose": "AI-powered paid advertising account auditing and optimization.",
+      "license": "MIT",
+      "version": "v1.7.1",
+      "stack": [
+        "Claude Code Plugin",
+        "Parallel Subagents",
+        "Local AI",
+        "Deterministic Audit Engine"
+      ],
+      "supported_platforms": [
+        "Google Ads",
+        "Meta Ads",
+        "YouTube Ads",
+        "LinkedIn Ads",
+        "TikTok Ads",
+        "Microsoft Ads",
+        "Apple Search Ads",
+        "Amazon Ads"
+      ],
+      "core_features": [
+        "250+ audit checks",
+        "0-100 health score",
+        "Wasted spend detection",
+        "Prioritized optimization plan",
+        "Creative generation",
+        "Weekly audit workflow"
+      ],
+      "integration_status": "reference_only",
+      "install_status": "not_installed",
+      "status": "reference_only",
+      "notes": "Do not install yet. Evaluate as a possible Marketing workflow reference for ad account audits and optimization planning."
+    },
+    {
+      "name": "eugeniughelbur/obsidian-second-brain",
+      "type": "repo_reference",
+      "category": "Knowledge / Memory",
+      "purpose": "AI-maintained Obsidian vault for persistent second-brain memory",
+      "license": "MIT",
+      "version": "v0.10 The Architect",
+      "integration_status": "reference_only",
+      "install_status": "not_installed",
+      "repo": "https://github.com/eugeniughelbur/obsidian-second-brain",
+      "status": "reference_only",
+      "notes": [
+        "Stores project decisions, tasks, people, contradictions, synthesis pages, and architecture docs.",
+        "Useful for TradeMaster, FusionDesk, B2B, AI Media, and development memory.",
+        "Must back up vault before enabling because it rewrites notes."
+      ]
+    }
+  ]
+}

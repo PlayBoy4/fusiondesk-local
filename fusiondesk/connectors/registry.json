@@ -1,0 +1,341 @@
+{
+  "registry_version": "0.1.0",
+  "interface_version": "fusiondesk.connector.v1",
+  "engine_rule": "Core orchestration calls connectors only through health, capabilities, and invoke.",
+  "connectors": [
+    {
+      "id": "openrouter",
+      "name": "OpenRouter",
+      "category": "model_gateway",
+      "status": "planned",
+      "description": "Routes prompts to hosted model seats without binding the engine to one model provider.",
+      "required_config": [
+        "OPENROUTER_API_KEY"
+      ],
+      "capabilities": [
+        "model.generate",
+        "model.route",
+        "model.compare",
+        "usage.estimate"
+      ],
+      "risk_notes": [
+        "Track model costs and context limits.",
+        "Do not send secrets unless the active skill allows it."
+      ]
+    },
+    {
+      "id": "agent_reach",
+      "name": "Agent Reach",
+      "category": "internet_intelligence",
+      "status": "planned",
+      "description": "Internet Intelligence connector for broad source discovery, reading, and evidence gathering.",
+      "required_config": [
+        "AGENT_REACH_API_KEY"
+      ],
+      "capabilities": [
+        "web.search",
+        "web.read",
+        "github.search",
+        "github.repo_read",
+        "reddit.search",
+        "reddit.read",
+        "x.search",
+        "x.read",
+        "youtube.search",
+        "youtube.subtitles_read",
+        "rss.read",
+        "linkedin.search",
+        "linkedin.read",
+        "podcast.search",
+        "podcast.transcript_read",
+        "source.future"
+      ],
+      "risk_notes": [
+        "Respect robots, source terms, and login boundaries.",
+        "Mark unsupported sources as partial instead of fabricating coverage."
+      ]
+    },
+    {
+      "id": "polygon_io",
+      "name": "Polygon.io",
+      "category": "market_data",
+      "status": "planned",
+      "description": "Market data connector for prices, sessions, tickers, candles, and trading evidence.",
+      "required_config": [
+        "POLYGON_API_KEY"
+      ],
+      "capabilities": [
+        "market.snapshot",
+        "market.candles",
+        "market.news",
+        "market.ticker_details"
+      ],
+      "risk_notes": [
+        "Trading outputs are decision support, not financial advice.",
+        "Validate delayed versus real-time data before use."
+      ]
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "category": "code_hosting",
+      "status": "planned",
+      "description": "Repository, issue, pull request, and code search connector.",
+      "required_config": [
+        "GITHUB_TOKEN"
+      ],
+      "capabilities": [
+        "repo.search",
+        "repo.read",
+        "issue.read",
+        "pull_request.read",
+        "code.search"
+      ],
+      "risk_notes": [
+        "Respect private repo boundaries.",
+        "Avoid committing or pushing unless a write skill explicitly requests it."
+      ]
+    },
+    {
+      "id": "browser_automation",
+      "name": "Browser Automation",
+      "category": "browser",
+      "status": "planned",
+      "description": "Browser adapter for webpage inspection, app verification, screenshots, and controlled UI actions.",
+      "required_config": [],
+      "capabilities": [
+        "browser.open",
+        "browser.inspect",
+        "browser.click",
+        "browser.type",
+        "browser.screenshot",
+        "browser.verify"
+      ],
+      "risk_notes": [
+        "Do not bypass authentication or consent flows.",
+        "Treat UI automation as high-latency and evidence-producing."
+      ]
+    },
+    {
+      "id": "local_filesystem",
+      "name": "Local Filesystem",
+      "category": "local_workspace",
+      "status": "planned",
+      "description": "Workspace file read/write connector with explicit sandbox and approval boundaries.",
+      "required_config": [],
+      "capabilities": [
+        "file.search",
+        "file.read",
+        "file.write",
+        "file.patch",
+        "process.run",
+        "test.run"
+      ],
+      "risk_notes": [
+        "Never overwrite unrelated user changes.",
+        "Destructive actions require explicit approval."
+      ]
+    },
+    {
+      "id": "runpod",
+      "name": "RunPod",
+      "category": "gpu_compute",
+      "status": "planned",
+      "description": "GPU workflow connector for media generation, AI jobs, and hosted workers.",
+      "required_config": [
+        "RUNPOD_API_KEY"
+      ],
+      "capabilities": [
+        "gpu.template_list",
+        "gpu.job_start",
+        "gpu.job_status",
+        "gpu.job_stop",
+        "artifact.download"
+      ],
+      "risk_notes": [
+        "Estimate GPU cost before long jobs.",
+        "Never leave idle paid pods running."
+      ]
+    },
+    {
+      "id": "social_instagram",
+      "name": "Instagram",
+      "category": "social_publishing",
+      "status": "planned",
+      "description": "Instagram publishing, scheduling, comment, and analytics connector placeholder.",
+      "required_config": [
+        "INSTAGRAM_ACCESS_TOKEN"
+      ],
+      "capabilities": [
+        "social.publish",
+        "social.schedule",
+        "social.analytics",
+        "social.comments_read"
+      ],
+      "risk_notes": [
+        "Reference-only connector until platform API access and publishing permissions are configured.",
+        "Publishing actions require explicit approval workflow selection.",
+        "Respect platform terms, rate limits, brand safety, and client account boundaries."
+      ]
+    },
+    {
+      "id": "social_facebook",
+      "name": "Facebook",
+      "category": "social_publishing",
+      "status": "planned",
+      "description": "Facebook page publishing, scheduling, comments, and analytics connector placeholder.",
+      "required_config": [
+        "FACEBOOK_ACCESS_TOKEN"
+      ],
+      "capabilities": [
+        "social.publish",
+        "social.schedule",
+        "social.analytics",
+        "social.comments_read"
+      ],
+      "risk_notes": [
+        "Reference-only connector until platform API access and publishing permissions are configured.",
+        "Publishing actions require explicit approval workflow selection.",
+        "Respect platform terms, rate limits, brand safety, and client account boundaries."
+      ]
+    },
+    {
+      "id": "social_linkedin",
+      "name": "LinkedIn",
+      "category": "social_publishing",
+      "status": "planned",
+      "description": "LinkedIn publishing, scheduling, and analytics connector placeholder.",
+      "required_config": [
+        "LINKEDIN_ACCESS_TOKEN"
+      ],
+      "capabilities": [
+        "social.publish",
+        "social.schedule",
+        "social.analytics",
+        "social.comments_read"
+      ],
+      "risk_notes": [
+        "Reference-only connector until platform API access and publishing permissions are configured.",
+        "Publishing actions require explicit approval workflow selection.",
+        "Respect platform terms, rate limits, brand safety, and client account boundaries."
+      ]
+    },
+    {
+      "id": "social_threads",
+      "name": "Threads",
+      "category": "social_publishing",
+      "status": "planned",
+      "description": "Threads publishing and analytics connector placeholder.",
+      "required_config": [
+        "THREADS_ACCESS_TOKEN"
+      ],
+      "capabilities": [
+        "social.publish",
+        "social.schedule",
+        "social.analytics"
+      ],
+      "risk_notes": [
+        "Reference-only connector until platform API access and publishing permissions are configured.",
+        "Publishing actions require explicit approval workflow selection.",
+        "Respect platform terms, rate limits, brand safety, and client account boundaries."
+      ]
+    },
+    {
+      "id": "social_youtube",
+      "name": "YouTube Shorts",
+      "category": "social_publishing",
+      "status": "planned",
+      "description": "YouTube Shorts publishing, scheduling, comments, and analytics connector placeholder.",
+      "required_config": [
+        "YOUTUBE_ACCESS_TOKEN"
+      ],
+      "capabilities": [
+        "social.publish",
+        "social.schedule",
+        "social.analytics",
+        "video.metadata_update",
+        "comments.read"
+      ],
+      "risk_notes": [
+        "Reference-only connector until platform API access and publishing permissions are configured.",
+        "Publishing actions require explicit approval workflow selection.",
+        "Respect platform terms, rate limits, brand safety, and client account boundaries."
+      ]
+    },
+    {
+      "id": "social_tiktok",
+      "name": "TikTok",
+      "category": "social_publishing",
+      "status": "planned",
+      "description": "TikTok publishing, scheduling, comments, and analytics connector placeholder.",
+      "required_config": [
+        "TIKTOK_ACCESS_TOKEN"
+      ],
+      "capabilities": [
+        "social.publish",
+        "social.schedule",
+        "social.analytics",
+        "comments.read"
+      ],
+      "risk_notes": [
+        "Reference-only connector until platform API access and publishing permissions are configured.",
+        "Publishing actions require explicit approval workflow selection.",
+        "Respect platform terms, rate limits, brand safety, and client account boundaries."
+      ]
+    }
+  ],
+  "invoke_envelope": {
+    "input_schema": {
+      "type": "object",
+      "required": [
+        "connector_id",
+        "capability",
+        "action",
+        "input"
+      ],
+      "properties": {
+        "connector_id": {
+          "type": "string"
+        },
+        "capability": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "input": {
+          "type": "object"
+        },
+        "context": {
+          "type": "object"
+        }
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "required": [
+        "ok",
+        "data",
+        "evidence",
+        "warnings"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "object"
+        },
+        "evidence": {
+          "type": "array"
+        },
+        "warnings": {
+          "type": "array"
+        },
+        "cost": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

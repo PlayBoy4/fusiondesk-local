@@ -1,0 +1,3674 @@
+{
+  "registry_version": "0.1.0",
+  "skill_schema": "fusiondesk.skill.v1",
+  "modes": [
+    "SOLO",
+    "RELAY",
+    "PANEL",
+    "TRINITY"
+  ],
+  "mode_definitions": {
+    "SOLO": "One model seat executes directly.",
+    "RELAY": "One model drafts and another model reviews or enriches.",
+    "PANEL": "Multiple specialist seats contribute separate views.",
+    "TRINITY": "Planner, operator, and judge seats coordinate a high-risk or complex task."
+  },
+  "shared_schemas": {
+    "brief_input": {
+      "type": "object",
+      "required": [
+        "request"
+      ],
+      "properties": {
+        "request": {
+          "type": "string"
+        },
+        "context": {
+          "type": "object"
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "analysis_output": {
+      "type": "object",
+      "required": [
+        "summary",
+        "findings",
+        "evidence",
+        "next_actions"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "findings": {
+          "type": "array"
+        },
+        "evidence": {
+          "type": "array"
+        },
+        "next_actions": {
+          "type": "array"
+        }
+      }
+    },
+    "plan_output": {
+      "type": "object",
+      "required": [
+        "plan",
+        "assumptions",
+        "risks",
+        "next_actions"
+      ],
+      "properties": {
+        "plan": {
+          "type": "array"
+        },
+        "assumptions": {
+          "type": "array"
+        },
+        "risks": {
+          "type": "array"
+        },
+        "next_actions": {
+          "type": "array"
+        }
+      }
+    },
+    "artifact_output": {
+      "type": "object",
+      "required": [
+        "artifact",
+        "notes",
+        "evidence"
+      ],
+      "properties": {
+        "artifact": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "array"
+        },
+        "evidence": {
+          "type": "array"
+        }
+      }
+    }
+  },
+  "skills": [
+    {
+      "id": "trademaster.live_market_analysis",
+      "name": "Live Market Analysis",
+      "category": "TradeMaster Skills",
+      "module": "trademaster",
+      "description": "Analyze active market conditions using live or recent market data, news, and session context.",
+      "trigger_phrases": [
+        "live market analysis",
+        "what is the market doing",
+        "analyze this ticker live"
+      ],
+      "required_tools": [
+        "polygon_io",
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "TRINITY",
+      "recommended_model_seats": [
+        "market_analyst",
+        "risk_reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Decision support only, not financial advice.",
+        "Timestamp all market evidence."
+      ],
+      "examples": [
+        {
+          "input": "Analyze SPY into the open.",
+          "output": "Bias, levels, catalysts, invalidation, and risk notes."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "risk_checker",
+        "judge"
+      ],
+      "optional_seats": [
+        "planner",
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "research_strength",
+        "reliability",
+        "context_length"
+      ]
+    },
+    {
+      "id": "trademaster.premium_floor_detection",
+      "name": "Premium Floor Detection",
+      "category": "TradeMaster Skills",
+      "module": "trademaster",
+      "description": "Detect whether options premium is stabilizing, expanding, or breaking down around key levels.",
+      "trigger_phrases": [
+        "premium floor",
+        "detect premium floor",
+        "is premium holding"
+      ],
+      "required_tools": [
+        "polygon_io",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "options_reader",
+        "market_analyst",
+        "risk_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Require liquidity and spread context.",
+        "Avoid certainty language on thin options chains."
+      ],
+      "examples": [
+        {
+          "input": "Check if NVDA calls have a premium floor.",
+          "output": "Premium behavior, confirming signals, and failure level."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "risk_checker",
+        "judge"
+      ],
+      "optional_seats": [
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "research_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "trademaster.session_recap_extraction",
+      "name": "Session Recap Extraction",
+      "category": "TradeMaster Skills",
+      "module": "trademaster",
+      "description": "Extract a structured recap from trade notes, screenshots, transcripts, or market logs.",
+      "trigger_phrases": [
+        "session recap",
+        "extract recap",
+        "summarize trading day"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "recap_extractor"
+      ],
+      "safety_risk_notes": [
+        "Separate observed facts from hindsight interpretations."
+      ],
+      "examples": [
+        {
+          "input": "Turn these notes into a session recap.",
+          "output": "Timeline, thesis, execution, lessons, and follow-up."
+        }
+      ],
+      "required_seats": [
+        "researcher"
+      ],
+      "optional_seats": [
+        "clarity_writer",
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "writing_strength",
+        "context_length"
+      ]
+    },
+    {
+      "id": "trademaster.thesis_validation",
+      "name": "Thesis Validation",
+      "category": "TradeMaster Skills",
+      "module": "trademaster",
+      "description": "Check a trading thesis against levels, catalysts, data quality, and invalidation criteria.",
+      "trigger_phrases": [
+        "validate my thesis",
+        "check this trade idea",
+        "is this thesis solid"
+      ],
+      "required_tools": [
+        "polygon_io",
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "thesis_builder",
+        "skeptic"
+      ],
+      "safety_risk_notes": [
+        "Flag missing invalidation and position sizing assumptions."
+      ],
+      "examples": [
+        {
+          "input": "Bullish TSLA above VWAP because momentum is strong.",
+          "output": "Validated, weak, or rejected thesis with evidence."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "risk_checker",
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "trademaster.risk_review",
+      "name": "Risk Review",
+      "category": "TradeMaster Skills",
+      "module": "trademaster",
+      "description": "Review trade risk, sizing, invalidation, event exposure, liquidity, and failure modes.",
+      "trigger_phrases": [
+        "risk review",
+        "check my risk",
+        "what can go wrong"
+      ],
+      "required_tools": [
+        "polygon_io",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "risk_reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Prefer conservative warnings when risk inputs are incomplete."
+      ],
+      "examples": [
+        {
+          "input": "Review this 0DTE idea.",
+          "output": "Risk map, invalidation, max loss, and no-trade triggers."
+        }
+      ],
+      "required_seats": [
+        "risk_checker",
+        "judge"
+      ],
+      "optional_seats": [
+        "researcher"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "trademaster.daily_premarket_plan",
+      "name": "Daily Premarket Plan",
+      "category": "TradeMaster Skills",
+      "module": "trademaster",
+      "description": "Create a premarket plan with macro context, watchlist, key levels, scenarios, and risk rules.",
+      "trigger_phrases": [
+        "premarket plan",
+        "daily trading plan",
+        "build my morning plan"
+      ],
+      "required_tools": [
+        "polygon_io",
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "TRINITY",
+      "recommended_model_seats": [
+        "macro_reader",
+        "setup_builder",
+        "risk_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Timestamp all data.",
+        "Label scenarios instead of predictions."
+      ],
+      "examples": [
+        {
+          "input": "Build a premarket plan for QQQ and NVDA.",
+          "output": "Bias, levels, setups, scenarios, and risk checklist."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "researcher",
+        "risk_checker"
+      ],
+      "optional_seats": [
+        "judge",
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "research_strength",
+        "reliability",
+        "context_length"
+      ]
+    },
+    {
+      "id": "development.code_review",
+      "name": "Code Review",
+      "category": "Development Skills",
+      "module": "development",
+      "description": "Review code for bugs, regressions, missing tests, security risks, and maintainability issues.",
+      "trigger_phrases": [
+        "code review",
+        "review this diff",
+        "find bugs"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "github",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "reviewer",
+        "verifier"
+      ],
+      "safety_risk_notes": [
+        "Lead with concrete findings and file references.",
+        "Avoid style-only noise unless requested."
+      ],
+      "examples": [
+        {
+          "input": "Review the current branch.",
+          "output": "Ordered findings with severity, evidence, and test gaps."
+        }
+      ],
+      "required_seats": [
+        "reviewer",
+        "evidence_checker"
+      ],
+      "optional_seats": [
+        "builder",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "coding_strength",
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "development.bug_fixing",
+      "name": "Bug Fixing",
+      "category": "Development Skills",
+      "module": "development",
+      "description": "Reproduce, isolate, fix, and verify a reported bug with minimal code changes.",
+      "trigger_phrases": [
+        "fix bug",
+        "debug this",
+        "not working"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "github",
+        "browser_automation",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "TRINITY",
+      "recommended_model_seats": [
+        "debugger",
+        "implementer",
+        "tester"
+      ],
+      "safety_risk_notes": [
+        "Do not revert unrelated user changes.",
+        "Verify with tests or explain why not possible."
+      ],
+      "examples": [
+        {
+          "input": "The dashboard button does nothing.",
+          "output": "Root cause, patch, and verification result."
+        }
+      ],
+      "required_seats": [
+        "builder",
+        "reviewer",
+        "evidence_checker"
+      ],
+      "optional_seats": [
+        "planner"
+      ],
+      "preferred_model_traits": [
+        "coding_strength",
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "development.repo_architecture_analysis",
+      "name": "Repo Architecture Analysis",
+      "category": "Development Skills",
+      "module": "development",
+      "description": "Map repository structure, ownership boundaries, data flow, risks, and extension points.",
+      "trigger_phrases": [
+        "repo architecture",
+        "explain this repo",
+        "map the codebase"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "github",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "architect",
+        "security_reviewer",
+        "maintainer"
+      ],
+      "safety_risk_notes": [
+        "Distinguish observed code from inferred intent."
+      ],
+      "examples": [
+        {
+          "input": "Analyze this app architecture.",
+          "output": "Module map, dependencies, flows, risks, and next moves."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "reviewer",
+        "evidence_checker"
+      ],
+      "optional_seats": [
+        "researcher"
+      ],
+      "preferred_model_traits": [
+        "coding_strength",
+        "reasoning_strength",
+        "context_length",
+        "reliability"
+      ]
+    },
+    {
+      "id": "development.ponytail_minimal_implementation",
+      "name": "Minimal Implementation / Ponytail Mode",
+      "category": "Development Skills",
+      "module": "development",
+      "description": "Implement the smallest useful version that fits the existing codebase and avoids unnecessary abstraction.",
+      "trigger_phrases": [
+        "ponytail mode",
+        "minimal implementation",
+        "keep it simple"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "minimal_builder"
+      ],
+      "safety_risk_notes": [
+        "Prefer local patterns and narrow changes.",
+        "Avoid broad rewrites unless requested."
+      ],
+      "examples": [
+        {
+          "input": "Add a config toggle, Ponytail mode.",
+          "output": "Small patch, focused verification, and no unrelated churn."
+        }
+      ],
+      "required_seats": [
+        "builder"
+      ],
+      "optional_seats": [
+        "reviewer"
+      ],
+      "preferred_model_traits": [
+        "coding_strength",
+        "speed",
+        "reliability"
+      ]
+    },
+    {
+      "id": "development.test_generation",
+      "name": "Test Generation",
+      "category": "Development Skills",
+      "module": "development",
+      "description": "Generate focused tests for new behavior, regressions, and critical contracts.",
+      "trigger_phrases": [
+        "generate tests",
+        "add tests",
+        "test coverage"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "test_writer",
+        "verifier"
+      ],
+      "safety_risk_notes": [
+        "Tests should assert behavior, not implementation trivia."
+      ],
+      "examples": [
+        {
+          "input": "Add tests for this registry loader.",
+          "output": "Focused tests and command output."
+        }
+      ],
+      "required_seats": [
+        "builder",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "coding_strength",
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "development.documentation",
+      "name": "Documentation",
+      "category": "Development Skills",
+      "module": "development",
+      "description": "Create or update developer-facing documentation, setup notes, API docs, and handoff guides.",
+      "trigger_phrases": [
+        "write docs",
+        "document this",
+        "readme update"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "github",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "technical_writer"
+      ],
+      "safety_risk_notes": [
+        "Keep commands accurate and environment-specific."
+      ],
+      "examples": [
+        {
+          "input": "Document the connector architecture.",
+          "output": "README section with contracts and examples."
+        }
+      ],
+      "required_seats": [
+        "clarity_writer"
+      ],
+      "optional_seats": [
+        "reviewer",
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "coding_strength",
+        "context_length"
+      ]
+    },
+    {
+      "id": "business.proposal_writing",
+      "name": "Proposal Writing",
+      "category": "Business / B2B Skills",
+      "module": "business",
+      "description": "Draft client proposals with scope, outcomes, pricing structure, timeline, and assumptions.",
+      "trigger_phrases": [
+        "write proposal",
+        "client proposal",
+        "scope of work"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "proposal_writer",
+        "deal_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Flag legal, tax, and guarantee language for human review."
+      ],
+      "examples": [
+        {
+          "input": "Write a proposal for an AI dashboard build.",
+          "output": "Client-ready proposal draft with assumptions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "clarity_writer"
+      ],
+      "optional_seats": [
+        "reviewer"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "business.lead_research",
+      "name": "Lead Research",
+      "category": "Business / B2B Skills",
+      "module": "business",
+      "description": "Research target accounts, decision makers, pain points, and outreach angles.",
+      "trigger_phrases": [
+        "lead research",
+        "research this company",
+        "find prospects"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "github",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "researcher",
+        "sales_strategist",
+        "evidence_checker"
+      ],
+      "safety_risk_notes": [
+        "Use public information only.",
+        "Avoid sensitive personal profiling."
+      ],
+      "examples": [
+        {
+          "input": "Research AI agencies in Cleveland.",
+          "output": "Lead list, signals, evidence, and outreach angle."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "evidence_checker"
+      ],
+      "optional_seats": [
+        "clarity_writer"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "writing_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "business.offer_creation",
+      "name": "Offer Creation",
+      "category": "Business / B2B Skills",
+      "module": "business",
+      "description": "Design a sellable offer with target customer, pain, deliverables, proof, guarantee, and pricing logic.",
+      "trigger_phrases": [
+        "create offer",
+        "package this service",
+        "make an offer"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "offer_strategist",
+        "market_researcher",
+        "skeptic"
+      ],
+      "safety_risk_notes": [
+        "Avoid unsupported revenue claims."
+      ],
+      "examples": [
+        {
+          "input": "Create an AI automation offer for roofers.",
+          "output": "Offer stack, positioning, price bands, and proof plan."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "clarity_writer",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "researcher"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "writing_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "business.client_audit",
+      "name": "Client Audit",
+      "category": "Business / B2B Skills",
+      "module": "business",
+      "description": "Audit a client's website, funnel, messaging, operations, and automation opportunities.",
+      "trigger_phrases": [
+        "client audit",
+        "audit this business",
+        "find improvements"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "browser_automation",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "TRINITY",
+      "recommended_model_seats": [
+        "auditor",
+        "operator",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Back claims with visible evidence.",
+        "Separate quick wins from strategic bets."
+      ],
+      "examples": [
+        {
+          "input": "Audit this local med spa site.",
+          "output": "Findings, missed revenue paths, and recommended fixes."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [
+        "planner",
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "business.crm_follow_up",
+      "name": "CRM Follow-Up",
+      "category": "Business / B2B Skills",
+      "module": "business",
+      "description": "Draft follow-up messages based on lead status, previous conversations, and next-step goals.",
+      "trigger_phrases": [
+        "crm follow up",
+        "follow-up email",
+        "reply to lead"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "sales_copywriter"
+      ],
+      "safety_risk_notes": [
+        "Do not invent relationship history or false urgency."
+      ],
+      "examples": [
+        {
+          "input": "Follow up with a lead after demo no-show.",
+          "output": "Short human message and alternate version."
+        }
+      ],
+      "required_seats": [
+        "clarity_writer"
+      ],
+      "optional_seats": [
+        "reviewer"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "speed",
+        "reliability"
+      ]
+    },
+    {
+      "id": "business.automation_planning",
+      "name": "Automation Planning",
+      "category": "Business / B2B Skills",
+      "module": "business",
+      "description": "Plan business automation workflows, integrations, triggers, data flow, and rollout risks.",
+      "trigger_phrases": [
+        "automation plan",
+        "automate this workflow",
+        "ops automation"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "TRINITY",
+      "recommended_model_seats": [
+        "systems_architect",
+        "automation_builder",
+        "risk_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Map human approval points for money, legal, or customer-impacting actions."
+      ],
+      "examples": [
+        {
+          "input": "Plan appointment booking automation.",
+          "output": "Trigger map, tools, data schema, and rollout steps."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "builder",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "risk_checker"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "coding_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "marketing.campaign_planning",
+      "name": "Campaign Planning",
+      "category": "Marketing Skills",
+      "module": "marketing",
+      "description": "Plan a campaign across audience, offer, channels, creative angles, funnel, budget, and measurement.",
+      "trigger_phrases": [
+        "campaign plan",
+        "marketing campaign",
+        "launch plan"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "strategist",
+        "copywriter",
+        "media_buyer"
+      ],
+      "safety_risk_notes": [
+        "Avoid unsupported performance guarantees."
+      ],
+      "examples": [
+        {
+          "input": "Plan a launch for FusionDesk.",
+          "output": "Campaign calendar, channels, hooks, and metrics."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "clarity_writer",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "researcher"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "reasoning_strength",
+        "research_strength"
+      ]
+    },
+    {
+      "id": "marketing.ad_copy",
+      "name": "Ad Copy",
+      "category": "Marketing Skills",
+      "module": "marketing",
+      "description": "Generate ad copy variants with hooks, body, CTA, audience, and compliance notes.",
+      "trigger_phrases": [
+        "ad copy",
+        "write ads",
+        "facebook ad"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "copywriter",
+        "compliance_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Avoid restricted targeting and false claims."
+      ],
+      "examples": [
+        {
+          "input": "Write Google ads for an AI audit offer.",
+          "output": "Multiple ad variants with CTA and notes."
+        }
+      ],
+      "required_seats": [
+        "clarity_writer",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "researcher"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "speed",
+        "reliability"
+      ]
+    },
+    {
+      "id": "marketing.funnel_pages",
+      "name": "Funnel Pages",
+      "category": "Marketing Skills",
+      "module": "marketing",
+      "description": "Plan or draft landing, opt-in, VSL, booking, thank-you, and checkout page content.",
+      "trigger_phrases": [
+        "funnel page",
+        "landing page",
+        "write a funnel"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "browser_automation",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "funnel_strategist",
+        "copywriter",
+        "ux_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Keep claims supportable and conversion paths clear."
+      ],
+      "examples": [
+        {
+          "input": "Draft a booking page for AI ops audits.",
+          "output": "Page sections, copy, proof blocks, and CTA."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "clarity_writer",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "builder"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "marketing.social_posts",
+      "name": "Social Posts",
+      "category": "Marketing Skills",
+      "module": "marketing",
+      "description": "Create platform-specific post variants, hooks, captions, threads, and repurposed snippets.",
+      "trigger_phrases": [
+        "social posts",
+        "write posts",
+        "make a thread"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "social_copywriter"
+      ],
+      "safety_risk_notes": [
+        "Respect platform norms and avoid impersonation."
+      ],
+      "examples": [
+        {
+          "input": "Turn this idea into 5 LinkedIn posts.",
+          "output": "Post variants with hooks and CTA."
+        }
+      ],
+      "required_seats": [
+        "clarity_writer"
+      ],
+      "optional_seats": [
+        "reviewer"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "speed"
+      ]
+    },
+    {
+      "id": "marketing.video_scripts",
+      "name": "Video Scripts",
+      "category": "Marketing Skills",
+      "module": "marketing",
+      "description": "Draft short-form or long-form scripts with hook, beats, visuals, CTA, and production notes.",
+      "trigger_phrases": [
+        "video script",
+        "script this",
+        "short form script"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "scriptwriter",
+        "editor"
+      ],
+      "safety_risk_notes": [
+        "Avoid copyrighted lyrics or long copyrighted excerpts."
+      ],
+      "examples": [
+        {
+          "input": "Write a 30 second FusionDesk demo script.",
+          "output": "Script, shot list, captions, and CTA."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "clarity_writer"
+      ],
+      "optional_seats": [
+        "reviewer"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "reasoning_strength",
+        "speed"
+      ]
+    },
+    {
+      "id": "marketing.brand_voice",
+      "name": "Brand Voice",
+      "category": "Marketing Skills",
+      "module": "marketing",
+      "description": "Define or adapt brand voice rules, vocabulary, tone, examples, and do-not-say lists.",
+      "trigger_phrases": [
+        "brand voice",
+        "voice guide",
+        "make this sound like us"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "brand_strategist",
+        "editor"
+      ],
+      "safety_risk_notes": [
+        "Do not clone a living person's private style exactly."
+      ],
+      "examples": [
+        {
+          "input": "Create FusionDesk brand voice rules.",
+          "output": "Voice pillars, examples, banned phrases, and rewrite samples."
+        }
+      ],
+      "required_seats": [
+        "clarity_writer",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "memory"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "reliability",
+        "context_length"
+      ]
+    },
+    {
+      "id": "paid_ads_audit",
+      "name": "Paid Ads Audit",
+      "category": "Marketing",
+      "module": "marketing",
+      "description": "Audit paid advertising accounts, detect optimization opportunities, estimate wasted spend, and generate an action plan.",
+      "trigger_phrases": [
+        "paid ads audit",
+        "ad account audit",
+        "audit paid advertising",
+        "wasted spend detection",
+        "optimize ad account",
+        "claude ads"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "openrouter",
+        "browser_automation",
+        "agent_reach"
+      ],
+      "connectors": {
+        "required": [
+          "local_filesystem"
+        ],
+        "optional": [
+          "openrouter",
+          "browser_automation",
+          "agent_reach"
+        ]
+      },
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "ads_auditor",
+        "data_analyst",
+        "copywriter",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only until paid ads data import and platform access are explicitly configured.",
+        "Do not claim account performance improvements without evidence from exported account data.",
+        "Treat spend, conversion, and client account data as sensitive business information."
+      ],
+      "examples": [
+        {
+          "input": "Audit this Google Ads export for wasted spend and optimization priorities.",
+          "output": "Health score, wasted spend findings, prioritized action plan, creative notes, and review caveats."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "ads_auditor",
+        "data_analyst",
+        "copywriter",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [
+        "creative_director",
+        "seo_optimizer",
+        "brand_guard"
+      ],
+      "preferred_model_traits": [
+        "reasoning",
+        "marketing",
+        "analysis",
+        "writing"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "ai_media.image_generation_planning",
+      "name": "Image Generation Planning",
+      "category": "AI Media Skills",
+      "module": "ai_media",
+      "description": "Plan image generation prompts, references, aspect ratios, shot lists, and iteration strategy.",
+      "trigger_phrases": [
+        "image generation plan",
+        "make image prompts",
+        "plan visuals"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "visual_prompt_planner"
+      ],
+      "safety_risk_notes": [
+        "Respect likeness, trademark, and copyrighted character limits."
+      ],
+      "examples": [
+        {
+          "input": "Plan thumbnail prompts for FusionDesk.",
+          "output": "Prompt set, negative prompts, and iteration checklist."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "clarity_writer"
+      ],
+      "optional_seats": [
+        "researcher"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "reasoning_strength",
+        "speed"
+      ]
+    },
+    {
+      "id": "ai_media.video_generation_planning",
+      "name": "Video Generation Planning",
+      "category": "AI Media Skills",
+      "module": "ai_media",
+      "description": "Plan video generation shots, timing, camera moves, model choice, and consistency strategy.",
+      "trigger_phrases": [
+        "video generation plan",
+        "AI video plan",
+        "make video prompts"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "runpod",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "video_director",
+        "workflow_operator",
+        "cost_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Estimate GPU cost and generation count before running jobs."
+      ],
+      "examples": [
+        {
+          "input": "Plan a 10-second dashboard reveal.",
+          "output": "Shot plan, prompts, model notes, and render workflow."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "builder",
+        "risk_checker"
+      ],
+      "optional_seats": [
+        "clarity_writer"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "writing_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "ai_media.tts_voiceover_planning",
+      "name": "TTS / Voiceover Planning",
+      "category": "AI Media Skills",
+      "module": "ai_media",
+      "description": "Plan voiceover scripts, TTS voice direction, pacing, pronunciation, and export notes.",
+      "trigger_phrases": [
+        "tts plan",
+        "voiceover plan",
+        "AI voice"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "voice_director"
+      ],
+      "safety_risk_notes": [
+        "Do not clone private voices without permission."
+      ],
+      "examples": [
+        {
+          "input": "Plan voiceover for a product demo.",
+          "output": "Script, delivery notes, pacing, and export checklist."
+        }
+      ],
+      "required_seats": [
+        "clarity_writer"
+      ],
+      "optional_seats": [
+        "planner"
+      ],
+      "preferred_model_traits": [
+        "writing_strength",
+        "speed",
+        "reliability"
+      ]
+    },
+    {
+      "id": "ai_media.runpod_workflow_planning",
+      "name": "RunPod Workflow Planning",
+      "category": "AI Media Skills",
+      "module": "ai_media",
+      "description": "Plan RunPod templates, GPU selection, storage, job lifecycle, and cost controls.",
+      "trigger_phrases": [
+        "runpod workflow",
+        "plan runpod",
+        "gpu workflow"
+      ],
+      "required_tools": [
+        "runpod",
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "TRINITY",
+      "recommended_model_seats": [
+        "gpu_operator",
+        "workflow_architect",
+        "cost_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Stop idle pods.",
+        "Confirm storage and secrets handling before launch."
+      ],
+      "examples": [
+        {
+          "input": "Plan a Wan2GP RunPod workflow.",
+          "output": "Pod type, setup steps, artifacts, and shutdown checklist."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "builder",
+        "risk_checker"
+      ],
+      "optional_seats": [
+        "reviewer"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "coding_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "ai_media.comfyui_wan2gp_workflow_notes",
+      "name": "ComfyUI / Wan2GP Workflow Notes",
+      "category": "AI Media Skills",
+      "module": "ai_media",
+      "description": "Document ComfyUI and Wan2GP workflow requirements, nodes, model files, and render steps.",
+      "trigger_phrases": [
+        "comfyui notes",
+        "wan2gp notes",
+        "workflow notes"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "github",
+        "runpod",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "workflow_researcher",
+        "operator"
+      ],
+      "safety_risk_notes": [
+        "Mark repo-specific instructions as references until tested locally."
+      ],
+      "examples": [
+        {
+          "input": "Write notes for Wan2GP setup.",
+          "output": "Dependencies, model paths, generation steps, and risks."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "builder"
+      ],
+      "optional_seats": [
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "coding_strength",
+        "context_length"
+      ]
+    },
+    {
+      "id": "ai_media.voxcpm2_notes",
+      "name": "VoxCPM2 Notes",
+      "category": "AI Media Skills",
+      "module": "ai_media",
+      "description": "Capture VoxCPM2 usage notes, voice workflow assumptions, integration points, and caveats.",
+      "trigger_phrases": [
+        "voxcpm2 notes",
+        "voice model notes",
+        "VoxCPM2 workflow"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "github",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "voice_researcher",
+        "workflow_operator"
+      ],
+      "safety_risk_notes": [
+        "Avoid unauthorized voice cloning.",
+        "Require licensing review before commercial use."
+      ],
+      "examples": [
+        {
+          "input": "Document VoxCPM2 for FusionDesk.",
+          "output": "Use cases, setup assumptions, risks, and connector needs."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "risk_checker"
+      ],
+      "optional_seats": [
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "ai_media.auto_short_clip_generation",
+      "name": "Auto Short Clip Generation",
+      "category": "AI Media Skills",
+      "module": "ai_media",
+      "description": "Plan long-form video or audio repurposing into short-form clips with clip selection, captions, hooks, and review notes.",
+      "trigger_phrases": [
+        "auto short clip generation",
+        "make shorts from long form",
+        "podcast clips",
+        "repurpose video into clips",
+        "autoshorts"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "runpod",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "planner",
+        "media_analyzer",
+        "copywriter",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Reference-only until JayWebtech/autoshorts is reviewed and intentionally installed.",
+        "Check rights for source video, audio, music, likeness, captions, and platform claims before publishing.",
+        "Keep generated clips clearly tied to source context to avoid misleading edits."
+      ],
+      "examples": [
+        {
+          "input": "Turn this TradeMaster session recap into short clips.",
+          "output": "Clip plan with timestamps, hooks, captions, formats, review notes, and publishing suggestions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "media_analyzer"
+      ],
+      "optional_seats": [
+        "copywriter",
+        "reviewer",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "writing_strength",
+        "context_length",
+        "reliability"
+      ]
+    },
+    {
+      "id": "research.web_research",
+      "name": "Web Research",
+      "category": "Research Skills",
+      "module": "research",
+      "description": "Research a topic across web sources and return evidence-grounded synthesis.",
+      "trigger_phrases": [
+        "web research",
+        "research this",
+        "look this up"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "researcher",
+        "evidence_checker"
+      ],
+      "safety_risk_notes": [
+        "Cite sources and distinguish facts from inference."
+      ],
+      "examples": [
+        {
+          "input": "Research Agent Reach alternatives.",
+          "output": "Findings, evidence, comparison, and recommendation."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "evidence_checker"
+      ],
+      "optional_seats": [
+        "clarity_writer"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "reliability",
+        "context_length"
+      ]
+    },
+    {
+      "id": "research.competitor_research",
+      "name": "Competitor Research",
+      "category": "Research Skills",
+      "module": "research",
+      "description": "Compare competitors by positioning, pricing, capabilities, proof, gaps, and opportunities.",
+      "trigger_phrases": [
+        "competitor research",
+        "compare competitors",
+        "market map"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "browser_automation",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "market_researcher",
+        "strategist",
+        "evidence_checker"
+      ],
+      "safety_risk_notes": [
+        "Use current public sources and avoid guessing hidden metrics."
+      ],
+      "examples": [
+        {
+          "input": "Compare AI coding dashboards.",
+          "output": "Competitor matrix, gaps, and FusionDesk angle."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "evidence_checker",
+        "judge"
+      ],
+      "optional_seats": [
+        "clarity_writer"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "research.tool_evaluation",
+      "name": "Tool Evaluation",
+      "category": "Research Skills",
+      "module": "research",
+      "description": "Evaluate a tool for fit, cost, maturity, risks, docs, APIs, and integration burden.",
+      "trigger_phrases": [
+        "tool evaluation",
+        "should we use this",
+        "evaluate this tool"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "github",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "researcher",
+        "architect",
+        "risk_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Separate verified docs from repo popularity signals."
+      ],
+      "examples": [
+        {
+          "input": "Evaluate OpenRouter for FusionDesk.",
+          "output": "Fit, risks, cost notes, and integration recommendation."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "research.repo_comparison",
+      "name": "Repo Comparison",
+      "category": "Research Skills",
+      "module": "research",
+      "description": "Compare repositories by purpose, architecture, activity, install friction, license, and risks.",
+      "trigger_phrases": [
+        "repo comparison",
+        "compare these repos",
+        "which repo is better"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "github",
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "repo_researcher",
+        "architect",
+        "license_reviewer"
+      ],
+      "safety_risk_notes": [
+        "Do not install repos during evaluation unless explicitly requested."
+      ],
+      "examples": [
+        {
+          "input": "Compare Wan2GP and FLUX Fusion.",
+          "output": "Use case matrix, setup risk, and recommendation."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "reviewer",
+        "evidence_checker"
+      ],
+      "optional_seats": [
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "coding_strength",
+        "reliability",
+        "context_length"
+      ]
+    },
+    {
+      "id": "research.ai_arbitrage_opportunity_analysis",
+      "name": "AI Arbitrage Opportunity Analysis",
+      "category": "Research Skills",
+      "module": "ai_arbitrage",
+      "description": "Find opportunities where AI tools can reduce labor, create offers, or improve speed-to-value.",
+      "trigger_phrases": [
+        "AI arbitrage",
+        "arbitrage opportunity",
+        "AI opportunity"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "TRINITY",
+      "recommended_model_seats": [
+        "opportunity_scout",
+        "operator",
+        "skeptic"
+      ],
+      "safety_risk_notes": [
+        "Check whether the value gap is real, legal, and repeatable."
+      ],
+      "examples": [
+        {
+          "input": "Find AI arbitrage ideas for local service businesses.",
+          "output": "Ranked opportunities, proof plan, risks, and first offer."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "planner",
+        "judge"
+      ],
+      "optional_seats": [
+        "risk_checker"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "reasoning_strength",
+        "writing_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "social_studio.social_strategy",
+      "name": "Social Strategy",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Create a cross-platform social strategy that maps audience, offer, channels, content pillars, cadence, approval mode, and analytics loop.",
+      "trigger_phrases": [
+        "social strategy",
+        "social studio strategy",
+        "content strategy",
+        "social media strategy"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "optional_tools": [
+        "social_instagram",
+        "social_facebook",
+        "social_linkedin",
+        "social_threads",
+        "social_youtube",
+        "social_tiktok"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "researcher",
+        "brand_guard",
+        "creative_director",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Social Strategy for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "researcher",
+        "brand_guard"
+      ],
+      "optional_seats": [
+        "creative_director",
+        "reviewer",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "reasoning",
+        "marketing",
+        "analysis",
+        "writing"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.trend_research",
+      "name": "Trend Research",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Research current trends, topics, formats, hooks, and platform patterns for social content planning.",
+      "trigger_phrases": [
+        "trend research",
+        "research social trends",
+        "find content trends"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "optional_tools": [
+        "social_tiktok",
+        "social_youtube",
+        "social_instagram"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "researcher",
+        "evidence_checker",
+        "planner",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Trend Research for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "evidence_checker"
+      ],
+      "optional_seats": [
+        "planner",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "context_length",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.content_calendar",
+      "name": "Content Calendar",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Build a scheduled content calendar across platforms with pillars, formats, owners, approval states, and publishing windows.",
+      "trigger_phrases": [
+        "content calendar",
+        "social calendar",
+        "posting calendar"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "optional_tools": [
+        "social_instagram",
+        "social_facebook",
+        "social_linkedin",
+        "social_threads",
+        "social_youtube",
+        "social_tiktok"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "copywriter",
+        "reviewer",
+        "brand_guard",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Content Calendar for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "copywriter",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "brand_guard",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "reasoning",
+        "marketing",
+        "writing"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.brand_voice_generation",
+      "name": "Brand Voice Generation",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Create a brand voice guide for social content, including tone rules, examples, banned phrases, platform adaptations, and guardrails.",
+      "trigger_phrases": [
+        "brand voice generation",
+        "social brand voice",
+        "create brand voice"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "optional_tools": [
+        "agent_reach"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "brand_guard",
+        "copywriter",
+        "reviewer",
+        "memory"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Brand Voice Generation for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "brand_guard",
+        "copywriter"
+      ],
+      "optional_seats": [
+        "reviewer",
+        "memory"
+      ],
+      "preferred_model_traits": [
+        "writing",
+        "marketing",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.social_post_generation",
+      "name": "Social Post Generation",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Generate social post variants by platform with hooks, captions, CTA, hashtags, and approval notes.",
+      "trigger_phrases": [
+        "social post generation",
+        "generate social posts",
+        "write social posts"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "optional_tools": [
+        "social_instagram",
+        "social_facebook",
+        "social_linkedin",
+        "social_threads",
+        "social_youtube",
+        "social_tiktok"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "copywriter",
+        "brand_guard",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Social Post Generation for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "copywriter",
+        "brand_guard"
+      ],
+      "optional_seats": [
+        "reviewer",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "writing",
+        "marketing",
+        "speed"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.carousel_generation",
+      "name": "Carousel Generation",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Plan carousel posts with slide outline, copy, visual direction, CTA, and platform formatting notes.",
+      "trigger_phrases": [
+        "carousel generation",
+        "make carousel",
+        "carousel post"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "social_instagram",
+        "social_linkedin"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "copywriter",
+        "creative_director",
+        "brand_guard",
+        "reviewer"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Carousel Generation for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "copywriter",
+        "creative_director"
+      ],
+      "optional_seats": [
+        "brand_guard",
+        "reviewer"
+      ],
+      "preferred_model_traits": [
+        "writing",
+        "marketing",
+        "reasoning"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.short_video_generation",
+      "name": "Short Video Generation",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Plan short-form videos with hooks, shot list, script, AI media workflow, voiceover notes, and publishing variants.",
+      "trigger_phrases": [
+        "short video generation",
+        "make shorts",
+        "short form video"
+      ],
+      "required_tools": [
+        "openrouter",
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "runpod",
+        "social_tiktok",
+        "social_youtube",
+        "social_instagram"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "creative_director",
+        "copywriter",
+        "media_analyzer",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Short Video Generation for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "creative_director",
+        "copywriter"
+      ],
+      "optional_seats": [
+        "media_analyzer",
+        "reviewer",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "reasoning",
+        "writing",
+        "marketing",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.podcast_repurposing",
+      "name": "Podcast Repurposing",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Turn podcast or long-form audio/video into clips, posts, hooks, show-note snippets, and publishing plans.",
+      "trigger_phrases": [
+        "podcast repurposing",
+        "podcast clips",
+        "repurpose podcast"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "runpod",
+        "social_youtube",
+        "social_tiktok"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "media_analyzer",
+        "copywriter",
+        "reviewer",
+        "brand_guard",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Podcast Repurposing for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "media_analyzer",
+        "copywriter"
+      ],
+      "optional_seats": [
+        "reviewer",
+        "brand_guard",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "context_length",
+        "writing",
+        "analysis",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.approval_workflow",
+      "name": "Approval Workflow",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Define approval routing for no approval, manual approval, business owner approval, client approval, or scheduled publish.",
+      "trigger_phrases": [
+        "approval workflow",
+        "client approval",
+        "business owner approval",
+        "scheduled publish approval"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "optional_tools": [
+        "social_instagram",
+        "social_facebook",
+        "social_linkedin",
+        "social_threads",
+        "social_youtube",
+        "social_tiktok"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "planner",
+        "reviewer",
+        "brand_guard",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Approval Workflow for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "brand_guard",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "reasoning",
+        "reliability",
+        "writing"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.social_scheduler",
+      "name": "Social Scheduler",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Plan scheduled publishing across social platforms with timing, approvals, platform variants, and retry rules.",
+      "trigger_phrases": [
+        "social scheduler",
+        "schedule social posts",
+        "scheduled publish"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "social_instagram",
+        "social_facebook",
+        "social_linkedin",
+        "social_threads",
+        "social_youtube",
+        "social_tiktok",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "planner",
+        "reviewer",
+        "brand_guard",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Social Scheduler for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "reviewer"
+      ],
+      "optional_seats": [
+        "brand_guard",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "reasoning",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.social_analytics",
+      "name": "Social Analytics",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Analyze views, CTR, watch time, comments, followers, conversions, and feed learnings back into memory.",
+      "trigger_phrases": [
+        "social analytics",
+        "analyze social performance",
+        "content performance report"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "optional_tools": [
+        "social_instagram",
+        "social_facebook",
+        "social_linkedin",
+        "social_threads",
+        "social_youtube",
+        "social_tiktok",
+        "agent_reach"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "data_analyst",
+        "researcher",
+        "judge",
+        "memory",
+        "planner"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Social Analytics for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "data_analyst",
+        "researcher",
+        "judge"
+      ],
+      "optional_seats": [
+        "memory",
+        "planner"
+      ],
+      "preferred_model_traits": [
+        "analysis",
+        "reasoning",
+        "context_length",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.competitor_monitor",
+      "name": "Competitor Monitor",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Monitor competitor channels, content patterns, offers, hooks, comments, and campaign moves.",
+      "trigger_phrases": [
+        "competitor monitor",
+        "monitor competitors",
+        "competitor social tracking"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "optional_tools": [
+        "social_instagram",
+        "social_facebook",
+        "social_linkedin",
+        "social_threads",
+        "social_youtube",
+        "social_tiktok"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "researcher",
+        "evidence_checker",
+        "planner",
+        "judge",
+        "brand_guard"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Competitor Monitor for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "researcher",
+        "evidence_checker",
+        "planner"
+      ],
+      "optional_seats": [
+        "judge",
+        "brand_guard"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "analysis",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.viral_hook_generator",
+      "name": "Viral Hook Generator",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Generate platform-specific hooks for organic posts, shorts, ads, carousels, and UGC scripts.",
+      "trigger_phrases": [
+        "viral hook generator",
+        "make viral hooks",
+        "hook ideas"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "optional_tools": [
+        "agent_reach"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "copywriter",
+        "creative_director",
+        "reviewer",
+        "brand_guard"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Viral Hook Generator for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "copywriter",
+        "creative_director"
+      ],
+      "optional_seats": [
+        "reviewer",
+        "brand_guard"
+      ],
+      "preferred_model_traits": [
+        "writing",
+        "marketing",
+        "speed"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.ugc_script_generation",
+      "name": "UGC Script Generation",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Create UGC-style scripts with creator brief, hook, beats, objections, CTA, and compliance notes.",
+      "trigger_phrases": [
+        "ugc script generation",
+        "ugc script",
+        "creator script"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "social_tiktok",
+        "social_instagram"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "copywriter",
+        "creative_director",
+        "brand_guard",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "UGC Script Generation for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "copywriter",
+        "creative_director",
+        "brand_guard"
+      ],
+      "optional_seats": [
+        "reviewer",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "writing",
+        "marketing",
+        "reasoning"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "social_studio.ad_creative_generation",
+      "name": "Ad Creative Generation",
+      "category": "Social Studio Skills",
+      "module": "social_studio",
+      "description": "Generate paid social creative concepts, ad copy, angles, visual direction, and test matrix for ad campaigns.",
+      "trigger_phrases": [
+        "ad creative generation",
+        "paid social creative",
+        "generate ad creative"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "social_instagram",
+        "social_facebook",
+        "social_tiktok",
+        "social_youtube"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "copywriter",
+        "creative_director",
+        "ads_auditor",
+        "brand_guard",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only workflow until social connector credentials and approval rules are configured.",
+        "Respect platform terms, copyright, likeness rights, client approvals, and brand safety."
+      ],
+      "examples": [
+        {
+          "input": "Ad Creative Generation for a local business campaign.",
+          "output": "Structured plan with evidence, assets, approvals, and next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "copywriter",
+        "creative_director"
+      ],
+      "optional_seats": [
+        "ads_auditor",
+        "brand_guard",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "marketing",
+        "writing",
+        "reasoning",
+        "analysis"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "orchestration.solo",
+      "name": "SOLO",
+      "category": "Orchestration Skills",
+      "module": "orchestration",
+      "description": "Run a task with one model seat when the work is narrow, low-risk, and does not need debate.",
+      "trigger_phrases": [
+        "solo mode",
+        "just do it",
+        "one model"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "operator"
+      ],
+      "safety_risk_notes": [
+        "Escalate to RELAY or PANEL when evidence, risk, or uncertainty grows."
+      ],
+      "examples": [
+        {
+          "input": "Summarize this note.",
+          "output": "Direct concise answer."
+        }
+      ],
+      "required_seats": [
+        "builder"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "speed",
+        "reliability"
+      ]
+    },
+    {
+      "id": "orchestration.relay",
+      "name": "RELAY",
+      "category": "Orchestration Skills",
+      "module": "orchestration",
+      "description": "Pass work from a primary model seat to a second reviewer or improver.",
+      "trigger_phrases": [
+        "relay mode",
+        "second pass",
+        "review then answer"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "operator",
+        "reviewer"
+      ],
+      "safety_risk_notes": [
+        "Reviewer should challenge weak assumptions, not merely rephrase."
+      ],
+      "examples": [
+        {
+          "input": "Draft and review this email.",
+          "output": "Improved draft and review notes."
+        }
+      ],
+      "required_seats": [
+        "builder",
+        "reviewer"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "orchestration.panel",
+      "name": "PANEL",
+      "category": "Orchestration Skills",
+      "module": "orchestration",
+      "description": "Use multiple specialist seats to produce independent views before synthesis.",
+      "trigger_phrases": [
+        "panel mode",
+        "multiple experts",
+        "debate this"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "specialist_a",
+        "specialist_b",
+        "synthesizer"
+      ],
+      "safety_risk_notes": [
+        "Keep specialist roles explicit to avoid blended, mushy output."
+      ],
+      "examples": [
+        {
+          "input": "Evaluate this business idea from three angles.",
+          "output": "Views, conflict points, and synthesis."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "researcher",
+        "judge"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "research_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "orchestration.trinity",
+      "name": "TRINITY",
+      "category": "Orchestration Skills",
+      "module": "orchestration",
+      "description": "Coordinate planner, operator, and judge seats for complex or higher-risk tasks.",
+      "trigger_phrases": [
+        "trinity mode",
+        "planner operator judge",
+        "high confidence mode"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "TRINITY",
+      "recommended_model_seats": [
+        "planner",
+        "operator",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Judge must verify evidence and identify unresolved risks."
+      ],
+      "examples": [
+        {
+          "input": "Plan and validate this automation build.",
+          "output": "Plan, implementation guidance, and judge verdict."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "builder",
+        "judge"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "orchestration.evidence_checking",
+      "name": "Evidence Checking",
+      "category": "Orchestration Skills",
+      "module": "orchestration",
+      "description": "Verify claims against source evidence, logs, files, or connector responses.",
+      "trigger_phrases": [
+        "evidence check",
+        "verify claims",
+        "source check"
+      ],
+      "required_tools": [
+        "agent_reach",
+        "github",
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "checker",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Return uncertainty when evidence is missing or stale."
+      ],
+      "examples": [
+        {
+          "input": "Check if this repo supports Apple Silicon.",
+          "output": "Verified claims, sources, and caveats."
+        }
+      ],
+      "required_seats": [
+        "evidence_checker",
+        "judge"
+      ],
+      "optional_seats": [
+        "researcher"
+      ],
+      "preferred_model_traits": [
+        "research_strength",
+        "reliability",
+        "context_length"
+      ]
+    },
+    {
+      "id": "orchestration.model_judging",
+      "name": "Model Judging",
+      "category": "Orchestration Skills",
+      "module": "orchestration",
+      "description": "Judge model outputs for correctness, usefulness, risk, style, and instruction fit.",
+      "trigger_phrases": [
+        "judge these outputs",
+        "rank responses",
+        "model judge"
+      ],
+      "required_tools": [
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "candidate_model",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Use explicit rubric and avoid preference-only scoring."
+      ],
+      "examples": [
+        {
+          "input": "Judge these three ad drafts.",
+          "output": "Scores, reasons, winner, and fixes."
+        }
+      ],
+      "required_seats": [
+        "judge",
+        "reviewer"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "orchestration.memory_retrieval",
+      "name": "Memory Retrieval",
+      "category": "Orchestration Skills",
+      "module": "orchestration",
+      "description": "Retrieve relevant saved context, prior decisions, project notes, and user preferences.",
+      "trigger_phrases": [
+        "remember",
+        "retrieve memory",
+        "what did we decide"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "memory_reader"
+      ],
+      "safety_risk_notes": [
+        "Only use memories from approved project or user-scoped stores."
+      ],
+      "examples": [
+        {
+          "input": "What connectors did we plan?",
+          "output": "Retrieved connector list with source file paths."
+        }
+      ],
+      "required_seats": [
+        "memory"
+      ],
+      "optional_seats": [
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "context_length",
+        "reliability",
+        "research_strength"
+      ]
+    },
+    {
+      "id": "orchestration.session_persistence",
+      "name": "Session Persistence",
+      "category": "Orchestration Skills",
+      "module": "orchestration",
+      "description": "Persist session state, decisions, pending actions, evidence, and handoff summaries.",
+      "trigger_phrases": [
+        "save session",
+        "persist this",
+        "handoff summary"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "openrouter"
+      ],
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "SOLO",
+      "recommended_model_seats": [
+        "session_scribe"
+      ],
+      "safety_risk_notes": [
+        "Do not store secrets or sensitive personal data unless explicitly approved."
+      ],
+      "examples": [
+        {
+          "input": "Save where we left off.",
+          "output": "Session record with decisions, files, and next steps."
+        }
+      ],
+      "required_seats": [
+        "memory",
+        "clarity_writer"
+      ],
+      "optional_seats": [
+        "reviewer"
+      ],
+      "preferred_model_traits": [
+        "context_length",
+        "writing_strength",
+        "reliability"
+      ]
+    },
+    {
+      "id": "obsidian_save_session",
+      "name": "Obsidian Save Session",
+      "category": "Knowledge",
+      "module": "knowledge",
+      "description": "Prepare a session summary for an Obsidian second-brain vault, including decisions, tasks, contradictions, links, and next actions.",
+      "trigger_phrases": [
+        "obsidian save session",
+        "save this session to obsidian",
+        "second brain session save",
+        "vault session summary"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "connectors": {
+        "required": [
+          "local_filesystem"
+        ],
+        "optional": [
+          "agent_reach",
+          "openrouter"
+        ]
+      },
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only until Obsidian vault path, backup workflow, and rewrite permissions are configured.",
+        "Do not store secrets, credentials, private phone data, or sensitive personal data without explicit approval.",
+        "Back up the vault before enabling any workflow that rewrites notes."
+      ],
+      "examples": [
+        {
+          "input": "Save today's FusionDesk decisions and next steps to the second brain.",
+          "output": "Vault-ready session note with decisions, tasks, contradictions, links, and next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "context_length",
+        "reasoning_strength",
+        "writing_strength",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "obsidian_ingest_source",
+      "name": "Obsidian Ingest Source",
+      "category": "Knowledge",
+      "module": "knowledge",
+      "description": "Convert source material into clean Obsidian notes with metadata, citations, tags, summaries, and unresolved questions.",
+      "trigger_phrases": [
+        "obsidian ingest source",
+        "add this source to second brain",
+        "turn this source into vault notes",
+        "ingest source into obsidian"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "connectors": {
+        "required": [
+          "local_filesystem"
+        ],
+        "optional": [
+          "agent_reach",
+          "openrouter"
+        ]
+      },
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only until source ingestion rules and vault backup workflow are configured.",
+        "Preserve source attribution and distinguish quotes from summaries.",
+        "Back up the vault before enabling any workflow that rewrites notes."
+      ],
+      "examples": [
+        {
+          "input": "Ingest this repo README and summarize its relevance to FusionDesk.",
+          "output": "Source note, summary, tags, links, and unresolved evaluation questions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "context_length",
+        "research_strength",
+        "writing_strength",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "obsidian_reconcile_notes",
+      "name": "Obsidian Reconcile Notes",
+      "category": "Knowledge",
+      "module": "knowledge",
+      "description": "Find conflicts, duplicates, stale assumptions, and contradictions across Obsidian notes before proposing safe edits.",
+      "trigger_phrases": [
+        "obsidian reconcile notes",
+        "reconcile second brain notes",
+        "find contradictions in vault",
+        "dedupe obsidian notes"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "connectors": {
+        "required": [
+          "local_filesystem"
+        ],
+        "optional": [
+          "agent_reach",
+          "openrouter"
+        ]
+      },
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/analysis_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only until rewrite permissions, diff preview, and backup workflow are configured.",
+        "Never silently delete notes; propose reconciliation changes with evidence.",
+        "Back up the vault before enabling any workflow that rewrites notes."
+      ],
+      "examples": [
+        {
+          "input": "Find contradictions between our TradeMaster plan notes and dashboard implementation notes.",
+          "output": "Contradiction report with affected notes, evidence, and proposed reconciliation edits."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "context_length",
+        "reasoning_strength",
+        "research_strength",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "obsidian_synthesize_patterns",
+      "name": "Obsidian Synthesize Patterns",
+      "category": "Knowledge",
+      "module": "knowledge",
+      "description": "Synthesize recurring patterns, principles, risks, and opportunities from Obsidian vault notes into higher-level knowledge pages.",
+      "trigger_phrases": [
+        "obsidian synthesize patterns",
+        "second brain pattern synthesis",
+        "synthesize vault patterns",
+        "find patterns in notes"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "connectors": {
+        "required": [
+          "local_filesystem"
+        ],
+        "optional": [
+          "agent_reach",
+          "openrouter"
+        ]
+      },
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only until synthesis destinations and citation rules are configured.",
+        "Keep synthesis linked to source notes and mark weak patterns as tentative.",
+        "Back up the vault before enabling any workflow that rewrites notes."
+      ],
+      "examples": [
+        {
+          "input": "Synthesize patterns from our AI Media and Social Studio notes.",
+          "output": "Pattern page with principles, opportunities, contradictions, and linked source notes."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "context_length",
+        "reasoning_strength",
+        "writing_strength",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "obsidian_project_architect",
+      "name": "Obsidian Project Architect",
+      "category": "Knowledge",
+      "module": "knowledge",
+      "description": "Design or update project architecture pages in an Obsidian vault, connecting decisions, modules, connectors, files, and open questions.",
+      "trigger_phrases": [
+        "obsidian project architect",
+        "architect this project in obsidian",
+        "update project architecture notes",
+        "second brain architecture doc"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "connectors": {
+        "required": [
+          "local_filesystem"
+        ],
+        "optional": [
+          "agent_reach",
+          "openrouter"
+        ]
+      },
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/artifact_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only until vault structure and architecture note templates are configured.",
+        "Do not overwrite architecture decisions without preserving history and rationale.",
+        "Back up the vault before enabling any workflow that rewrites notes."
+      ],
+      "examples": [
+        {
+          "input": "Create a FusionDesk architecture page covering skills, connectors, seats, and execution.",
+          "output": "Architecture note with module map, decision log, connector boundaries, and open questions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "context_length",
+        "reasoning_strength",
+        "writing_strength",
+        "reliability"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "obsidian_daily_review",
+      "name": "Obsidian Daily Review",
+      "category": "Knowledge",
+      "module": "knowledge",
+      "description": "Prepare a daily review from Obsidian notes, recent decisions, tasks, unresolved risks, and next focus areas.",
+      "trigger_phrases": [
+        "obsidian daily review",
+        "second brain daily review",
+        "daily vault review",
+        "review today's notes"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "agent_reach",
+        "openrouter"
+      ],
+      "connectors": {
+        "required": [
+          "local_filesystem"
+        ],
+        "optional": [
+          "agent_reach",
+          "openrouter"
+        ]
+      },
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only until daily note location, privacy rules, and vault backup workflow are configured.",
+        "Separate completed work, open loops, and uncertain memory instead of blending them.",
+        "Back up the vault before enabling any workflow that rewrites notes."
+      ],
+      "examples": [
+        {
+          "input": "Run my daily review for FusionDesk and TradeMaster.",
+          "output": "Daily review with decisions, open loops, risks, priorities, and suggested next actions."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "knowledge_architect",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [],
+      "preferred_model_traits": [
+        "context_length",
+        "reasoning_strength",
+        "writing_strength",
+        "reliability"
+      ],
+      "status": "definition_only"
+    }
+  ]
+}

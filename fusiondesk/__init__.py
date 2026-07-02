@@ -1,0 +1,2 @@
+"""FusionDesk AI extension contracts."""
+
