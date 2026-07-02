@@ -1,10 +1,10 @@
 # Premium Reload Lessons
 
 Lesson 1:
-Second retests have higher probability.
+- Exited too early.
 
 Lesson 2:
-Scale out instead of full exit.
+- Premium floor held.
 
 Lesson 3:
-Daily + 4H + 1H alignment increases conviction.
+- Second retest worked.
