@@ -1,0 +1,92 @@
+{
+  "version": "2026-07-03",
+  "policy": "Only status=active models may be executed. Internal seat labels must resolve through this registry before provider calls.",
+  "fallback_chain": [
+    "anthropic/claude-sonnet-4",
+    "openai/gpt-4o",
+    "google/gemini-2.5-flash",
+    "openai/gpt-4o-mini"
+  ],
+  "models": [
+    {
+      "label": "Sonnet",
+      "seat": "claude-sonnet",
+      "provider_model": "anthropic/claude-sonnet-4",
+      "status": "active",
+      "connector": "openrouter",
+      "aliases": ["sonnet", "claude-sonnet", "anthropic/claude-sonnet-4"]
+    },
+    {
+      "label": "ChatGPT",
+      "seat": "gpt-4.1",
+      "provider_model": "openai/gpt-4o",
+      "status": "active",
+      "connector": "openrouter",
+      "aliases": ["chatgpt", "gpt-4.1", "gpt-4o", "openai/gpt-4o"]
+    },
+    {
+      "label": "Gemini Flash",
+      "seat": "gemini-2.5-pro",
+      "provider_model": "google/gemini-2.5-flash",
+      "status": "active",
+      "connector": "openrouter",
+      "aliases": ["gemini", "gemini-2.5-pro", "google/gemini-2.5-flash"]
+    },
+    {
+      "label": "ChatGPT Mini",
+      "seat": "gpt-4.1-mini",
+      "provider_model": "openai/gpt-4o-mini",
+      "status": "active",
+      "connector": "openrouter",
+      "aliases": ["gpt-4.1-mini", "gpt-4o-mini", "openai/gpt-4o-mini", "claude-haiku"]
+    },
+    {
+      "label": "DeepSeek",
+      "seat": "deepseek-chat",
+      "provider_model": "deepseek/deepseek-chat",
+      "status": "needs_health_check",
+      "connector": "openrouter",
+      "aliases": ["deepseek", "deepseek-chat", "deepseek/deepseek-chat"]
+    },
+    {
+      "label": "Qwen Local",
+      "seat": "qwen-local",
+      "provider_model": "qwen-local",
+      "status": "offline",
+      "connector": "local_mlx",
+      "aliases": ["qwen", "qwen-local", "local-qwen"]
+    },
+    {
+      "label": "Opus",
+      "seat": "claude-opus",
+      "provider_model": "anthropic/claude-opus-4.7",
+      "status": "needs_health_check",
+      "connector": "openrouter",
+      "aliases": ["opus", "claude-opus", "opus-4.7", "anthropic/claude-opus-4.7"]
+    },
+    {
+      "label": "Claude Fable 5",
+      "seat": "claude-fable-5",
+      "provider_model": "anthropic/claude-fable-5",
+      "status": "needs_health_check",
+      "connector": "openrouter",
+      "aliases": ["fable", "fable-5", "claude-fable-5", "anthropic/claude-fable-5"]
+    },
+    {
+      "label": "GPT-5",
+      "seat": "gpt-5",
+      "provider_model": "openai/gpt-5",
+      "status": "needs_health_check",
+      "connector": "openrouter",
+      "aliases": ["gpt-5", "openai/gpt-5"]
+    },
+    {
+      "label": "GLM",
+      "seat": "glm",
+      "provider_model": "z-ai/glm-4.5",
+      "status": "needs_health_check",
+      "connector": "openrouter",
+      "aliases": ["glm", "glm-4.5", "z-ai/glm-4.5"]
+    }
+  ]
+}
