@@ -8,33 +8,116 @@ import socket
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Protocol
 
 
 OPENROUTER_URL = os.environ.get("OPENROUTER_URL", "https://openrouter.ai/api/v1/chat/completions")
+MODEL_REGISTRY_PATH = Path(__file__).resolve().parents[1] / "registry" / "models.json"
 
 
-MODEL_PRIORITY = [
+DEFAULT_MODEL_PRIORITY = [
     "anthropic/claude-sonnet-4",
     "openai/gpt-4o",
     "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
 ]
 
-OPENROUTER_MODEL_IDS = {
-    "claude-haiku": os.environ.get("OPENROUTER_MODEL_CLAUDE_HAIKU", "openai/gpt-4o-mini"),
-    "claude-sonnet": os.environ.get("OPENROUTER_MODEL_CLAUDE_SONNET", "anthropic/claude-sonnet-4"),
-    "claude-opus": os.environ.get("OPENROUTER_MODEL_CLAUDE_OPUS", "anthropic/claude-sonnet-4"),
-    "gpt-4.1-mini": os.environ.get("OPENROUTER_MODEL_GPT_4_1_MINI", "openai/gpt-4o-mini"),
-    "gpt-4.1": os.environ.get("OPENROUTER_MODEL_GPT_4_1", "openai/gpt-4o"),
-    "gemini-2.5-pro": os.environ.get("OPENROUTER_MODEL_GEMINI_2_5_PRO", "google/gemini-2.5-flash"),
-    "deepseek-chat": os.environ.get("OPENROUTER_MODEL_DEEPSEEK_CHAT", "openai/gpt-4o-mini"),
-}
+
+def load_model_registry() -> dict[str, Any]:
+    try:
+        return json.loads(MODEL_REGISTRY_PATH.read_text())
+    except Exception:
+        return {
+            "version": "fallback",
+            "policy": "Fallback registry used because fusiondesk/registry/models.json could not be loaded.",
+            "fallback_chain": list(DEFAULT_MODEL_PRIORITY),
+            "models": [
+                {
+                    "label": model,
+                    "seat": model,
+                    "provider_model": model,
+                    "status": "active",
+                    "connector": "openrouter",
+                    "aliases": [model],
+                }
+                for model in DEFAULT_MODEL_PRIORITY
+            ],
+        }
+
+
+def model_registry_entries() -> list[dict[str, Any]]:
+    return list(load_model_registry().get("models", []))
+
+
+def model_registry_for_api() -> dict[str, Any]:
+    registry = load_model_registry()
+    return {
+        "version": registry.get("version"),
+        "policy": registry.get("policy"),
+        "fallback_chain": active_fallback_chain(),
+        "models": [
+            {
+                "label": item.get("label"),
+                "seat": item.get("seat"),
+                "provider_model": item.get("provider_model"),
+                "status": item.get("status"),
+                "connector": item.get("connector"),
+            }
+            for item in registry.get("models", [])
+        ],
+    }
+
+
+def _model_lookup() -> dict[str, dict[str, Any]]:
+    lookup: dict[str, dict[str, Any]] = {}
+    for item in model_registry_entries():
+        keys = [
+            item.get("label"),
+            item.get("seat"),
+            item.get("provider_model"),
+            *(item.get("aliases") or []),
+        ]
+        for key in keys:
+            if key:
+                lookup[str(key).casefold()] = item
+    return lookup
+
+
+def _is_executable_model(item: dict[str, Any]) -> bool:
+    return item.get("status") == "active" and item.get("connector") == "openrouter" and bool(item.get("provider_model"))
+
+
+def active_fallback_chain() -> list[str]:
+    active = {
+        item.get("provider_model")
+        for item in model_registry_entries()
+        if _is_executable_model(item)
+    }
+    chain = [
+        model
+        for model in load_model_registry().get("fallback_chain", DEFAULT_MODEL_PRIORITY)
+        if model in active
+    ]
+    return chain or list(DEFAULT_MODEL_PRIORITY)
+
+
+def resolve_executable_model(model: str) -> str | None:
+    item = _model_lookup().get(str(model).casefold())
+    if not item:
+        return None
+    if not _is_executable_model(item):
+        return None
+    return str(item["provider_model"])
+
+
+MODEL_PRIORITY = active_fallback_chain()
 MODEL_STATUS = {
     "available_models": list(MODEL_PRIORITY),
     "active_model": None,
     "failed_models": [],
     "fallback_chain": [],
+    "skipped_models": [],
 }
 
 
@@ -46,10 +129,11 @@ class ModelInvocationError(RuntimeError):
 
 def model_status() -> dict[str, Any]:
     return {
-        "available_models": list(MODEL_PRIORITY),
+        "available_models": list(active_fallback_chain()),
         "active_model": MODEL_STATUS["active_model"],
         "failed_models": list(MODEL_STATUS["failed_models"]),
         "fallback_chain": list(MODEL_STATUS["fallback_chain"]),
+        "skipped_models": list(MODEL_STATUS["skipped_models"]),
     }
 
 
@@ -57,6 +141,7 @@ def reset_model_status() -> None:
     MODEL_STATUS["active_model"] = None
     MODEL_STATUS["failed_models"] = []
     MODEL_STATUS["fallback_chain"] = []
+    MODEL_STATUS["skipped_models"] = []
 
 
 def mark_model_attempt(model: str) -> None:
@@ -80,8 +165,17 @@ def mark_model_success(model: str) -> None:
     MODEL_STATUS["active_model"] = model
 
 
+def mark_model_skip(model: str) -> None:
+    print(f"[ModelSkip] {model}", flush=True)
+    if model not in MODEL_STATUS["skipped_models"]:
+        MODEL_STATUS["skipped_models"].append(model)
+
+
 def resolve_openrouter_model(model: str) -> str:
-    return OPENROUTER_MODEL_IDS.get(model, model)
+    resolved = resolve_executable_model(model)
+    if not resolved:
+        raise ModelInvocationError(f"Model is not active in registry: {model}", code="inactive_model")
+    return resolved
 
 
 def _classify_error_code(message: str) -> str:
@@ -341,11 +435,16 @@ class ExecutionEngine:
         planned_models = []
         for assignment in plan.get("seat_assignments", []):
             model = assignment.get("model")
-            if model and not model.endswith("-local"):
-                planned_models.append(resolve_openrouter_model(model))
+            if not model:
+                continue
+            resolved = resolve_executable_model(str(model))
+            if resolved:
+                planned_models.append(resolved)
+            else:
+                mark_model_skip(str(model))
 
         candidates = []
-        for model in MODEL_PRIORITY + planned_models:
+        for model in active_fallback_chain() + planned_models:
             if model not in candidates:
                 candidates.append(model)
         return candidates

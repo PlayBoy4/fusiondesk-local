@@ -1,4 +1,4 @@
-from fusiondesk.core.execution import ExecutionEngine, MODEL_PRIORITY, model_status
+from fusiondesk.core.execution import ExecutionEngine, MODEL_PRIORITY, model_registry_for_api, model_status
 
 
 PLAN = {
@@ -113,3 +113,70 @@ def test_model_status_shape():
     assert "active_model" in status
     assert "failed_models" in status
     assert "fallback_chain" in status
+
+
+def test_fake_model_ids_are_not_executed():
+    plan = {
+        **PLAN,
+        "seat_assignments": [
+            {"seat": "judge", "model": "anthropic/claude-fable-5", "reason": "not verified"},
+            {"seat": "strategist", "model": "openai/gpt-5", "reason": "not verified"},
+        ],
+    }
+    connector = SuccessfulConnector()
+    engine = ExecutionEngine(connectors={"openrouter": connector})
+
+    result = engine.execute(task="write a campaign", plan=plan)
+
+    assert result["ok"] is True
+    assert connector.calls == ["anthropic/claude-sonnet-4"]
+    assert "anthropic/claude-fable-5" not in connector.calls
+    assert "openai/gpt-5" not in connector.calls
+    assert model_status()["skipped_models"] == ["anthropic/claude-fable-5", "openai/gpt-5"]
+
+
+def test_inactive_models_fall_back_safely():
+    plan = {
+        **PLAN,
+        "seat_assignments": [
+            {"seat": "scout", "model": "deepseek-chat", "reason": "needs health check"},
+            {"seat": "local", "model": "qwen-local", "reason": "offline"},
+            {"seat": "nuclear", "model": "claude-opus", "reason": "needs health check"},
+        ],
+    }
+    connector = SuccessfulConnector()
+    engine = ExecutionEngine(connectors={"openrouter": connector})
+
+    result = engine.execute(task="write a campaign", plan=plan)
+
+    assert result["ok"] is True
+    assert connector.calls == ["anthropic/claude-sonnet-4"]
+    assert set(model_status()["skipped_models"]) == {"deepseek-chat", "qwen-local", "claude-opus"}
+
+
+def test_active_models_remain_executable_when_requested():
+    plan = {
+        **PLAN,
+        "seat_assignments": [
+            {"seat": "reviewer", "model": "gpt-4.1", "reason": "active alias"},
+        ],
+    }
+    connector = FallbackConnector()
+    engine = ExecutionEngine(connectors={"openrouter": connector})
+
+    result = engine.execute(task="write a campaign", plan=plan)
+
+    assert result["ok"] is True
+    assert result["execution"]["model"] == "openai/gpt-4o"
+    assert connector.calls == ["anthropic/claude-sonnet-4", "openai/gpt-4o"]
+
+
+def test_model_registry_api_shape():
+    registry = model_registry_for_api()
+    rows = registry["models"]
+
+    assert {"label", "seat", "provider_model", "status", "connector"} <= set(rows[0])
+    assert [model for model in registry["fallback_chain"] if model not in MODEL_PRIORITY] == []
+    assert any(row["provider_model"] == "anthropic/claude-sonnet-4" and row["status"] == "active" for row in rows)
+    assert any(row["provider_model"] == "openai/gpt-5" and row["status"] == "needs_health_check" for row in rows)
+    assert any(row["seat"] == "qwen-local" and row["status"] == "offline" for row in rows)

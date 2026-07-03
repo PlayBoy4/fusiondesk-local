@@ -28,7 +28,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from fusiondesk.core import ExecutionEngine, SeatAssignmentEngine
-from fusiondesk.core.execution import model_status
+from fusiondesk.core.execution import model_registry_for_api, model_status
 
 STATIC = ROOT / "dashboard" / "static"
 LOG_DIR = ROOT / "dashboard" / "logs"
@@ -1178,6 +1178,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/models/status":
             self.send_json(model_status())
+            return
+        if path == "/api/models":
+            self.send_json({"ok": True, **model_registry_for_api()})
             return
         if path == "/api/capabilities":
             self.send_json(capability_matrix())
