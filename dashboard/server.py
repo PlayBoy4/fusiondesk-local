@@ -37,6 +37,10 @@ RUNTIME_DIR = ROOT / "dashboard" / "runtime"
 RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 TRACE_LOG = LOG_DIR / "fusiondesk-debug.log"
 SESSION_STORE_PATH = RUNTIME_DIR / "sessions.json"
+CAPABILITY_MATRIX_PATH = ROOT / "fusiondesk" / "capabilities" / "matrix.json"
+TRADEMASTER_STATS = ROOT / "flint" / "memory" / "trading" / "stats.md"
+TRADEMASTER_LESSONS = ROOT / "flint" / "memory" / "trading" / "lessons" / "premium_reload_lessons.md"
+TRADEMASTER_REVIEWS = ROOT / "flint" / "memory" / "trading" / "reviews"
 
 HOST = os.environ.get("CLAUDE_DASHBOARD_HOST", "127.0.0.1")
 PORT = int(os.environ.get("CLAUDE_DASHBOARD_PORT", "4899"))
@@ -179,6 +183,103 @@ def normalize_session_id(value: object | None) -> str:
         return str(uuid.uuid4())
     cleaned = re.sub(r"[^a-zA-Z0-9_.:-]", "", raw)
     return cleaned[:96] or str(uuid.uuid4())
+
+
+def clean_fact_value(value: str) -> str:
+    value = str(value).strip(" .,!?\n\t")
+    for splitter in (" and my ", " but ", " also ", " because ", " when "):
+        if splitter in value.casefold():
+            index = value.casefold().index(splitter)
+            value = value[:index].strip(" .,!?\n\t")
+    return value
+
+
+def extract_user_facts(messages: list[dict]) -> dict[str, str]:
+    facts: dict[str, str] = {}
+    user_text = "\n".join(
+        str(message.get("content", ""))
+        for message in messages
+        if message.get("role") == "user" and str(message.get("content", "")).strip()
+    )
+    patterns = {
+        "name": [
+            r"\bmy name is\s+([A-Z][A-Za-z0-9_' -]{1,40})",
+            r"\bi am\s+([A-Z][A-Za-z0-9_' -]{1,40})",
+            r"\bi'm\s+([A-Z][A-Za-z0-9_' -]{1,40})",
+            r"\bcall me\s+([A-Z][A-Za-z0-9_' -]{1,40})",
+        ],
+        "birthday": [
+            r"\bmy birthday is\s+([A-Za-z0-9, /\-]{3,40})",
+            r"\bmy bday is\s+([A-Za-z0-9, /\-]{3,40})",
+            r"\bbirthday:\s*([A-Za-z0-9, /\-]{3,40})",
+            r"\bborn on\s+([A-Za-z0-9, /\-]{3,40})",
+        ],
+    }
+    for fact, fact_patterns in patterns.items():
+        for pattern in fact_patterns:
+            matches = re.findall(pattern, user_text, flags=re.IGNORECASE)
+            if matches:
+                value = clean_fact_value(str(matches[-1]))
+                if value:
+                    facts[fact] = value
+    return facts
+
+
+def session_memory_recap(messages: list[dict], limit: int = 8) -> str:
+    facts = extract_user_facts(messages)
+    lines = []
+    if facts:
+        lines.append("Known facts: " + ", ".join(f"{key}={value}" for key, value in facts.items()))
+    recent = [
+        message
+        for message in messages
+        if message.get("role") in {"user", "assistant"}
+        and message.get("status", "done") != "running"
+        and str(message.get("content", "")).strip()
+    ][-limit:]
+    if recent:
+        lines.append("Recent conversation:")
+        for message in recent:
+            role = "User" if message.get("role") == "user" else "FusionDesk"
+            content = re.sub(r"\s+", " ", str(message.get("content", ""))).strip()
+            if len(content) > 220:
+                content = content[:220] + "..."
+            lines.append(f"- {role}: {content}")
+    return "\n".join(lines) if lines else "No prior session memory available."
+
+
+def tool_state_for_plan(plan: dict) -> dict[str, str]:
+    selected = set(plan.get("connectors", []))
+    openrouter_key = bool(os.environ.get("OPENROUTER_API_KEY"))
+    agent_reach_active = os.environ.get("AGENT_REACH_ENABLED", "false").strip().casefold() in {"1", "true", "yes", "on"}
+    polygon_active = bool(os.environ.get("POLYGON_API_KEY"))
+    runpod_active = bool(os.environ.get("RUNPOD_API_KEY"))
+    github_active = bool(os.environ.get("GITHUB_TOKEN"))
+    browser_active = os.environ.get("BROWSER_AUTOMATION_ENABLED", "false").strip().casefold() in {"1", "true", "yes", "on"}
+    local = health().get("status", "offline")
+    state = {
+        "openrouter": "active" if openrouter_key else "inactive: OPENROUTER_API_KEY missing",
+        "local_qwen": f"{local}; plain local chat enabled={LOCAL_CHAT_ENABLED}",
+        "internet_access": "active through agent_reach" if agent_reach_active and "agent_reach" in selected else "inactive for this response",
+        "agent_reach": "active" if agent_reach_active else "registered only; not active",
+        "polygon_io": "active" if polygon_active else "registered only; live market data unavailable",
+        "github": "active" if github_active else "registered only; GitHub API unavailable",
+        "browser_automation": "active" if browser_active else "registered only; browser automation unavailable",
+        "local_filesystem": "active for configured dashboard files only" if "local_filesystem" in selected else "not selected",
+        "runpod": "active" if runpod_active else "registered only; GPU jobs unavailable",
+    }
+    for connector in sorted(selected - set(state)):
+        state[connector] = "selected; no runtime status checker configured"
+    return state
+
+
+def build_fusiondesk_memory_context(messages: list[dict], plan: dict) -> dict:
+    facts = extract_user_facts(messages)
+    return {
+        "facts": facts,
+        "recap": session_memory_recap(messages),
+        "tool_state": tool_state_for_plan(plan),
+    }
 
 
 class StageTimeout(RuntimeError):
@@ -344,6 +445,60 @@ def read_tail(path: Path, limit: int = 10000) -> str:
     return data[-limit:].decode("utf-8", errors="replace")
 
 
+def read_text_file(path: Path, fallback: str = "") -> str:
+    try:
+        return path.read_text(errors="replace")
+    except Exception:
+        return fallback
+
+
+def capability_matrix() -> dict:
+    if not CAPABILITY_MATRIX_PATH.exists():
+        return {"ok": False, "message": "Capability matrix not found.", "capabilities": []}
+    try:
+        data = json.loads(CAPABILITY_MATRIX_PATH.read_text())
+    except Exception as exc:
+        return {"ok": False, "message": f"Capability matrix could not be read: {exc}", "capabilities": []}
+    return {"ok": True, **data}
+
+
+def trademaster_status() -> dict:
+    reviews = sorted(TRADEMASTER_REVIEWS.glob("*.md")) if TRADEMASTER_REVIEWS.exists() else []
+    recent_reviews = [
+        {"name": path.name, "path": str(path), "preview": read_text_file(path)[:1000]}
+        for path in reviews[-5:]
+    ]
+    return {
+        "ok": True,
+        "stats": read_text_file(TRADEMASTER_STATS, "# TradeMaster Stats\n\nNo stats generated yet."),
+        "lessons": read_text_file(TRADEMASTER_LESSONS, "# TradeMaster Lessons\n\nNo lessons generated yet."),
+        "reviewCount": len(reviews),
+        "recentReviews": recent_reviews,
+        "runner": "fusiondesk.memory.trade_review_executor.review_trade",
+    }
+
+
+def run_trademaster_review(payload: dict) -> dict:
+    memory_dir = ROOT / "fusiondesk" / "memory"
+    if str(memory_dir) not in sys.path:
+        sys.path.insert(0, str(memory_dir))
+    try:
+        from trade_review_executor import review_trade
+
+        saved = review_trade(
+            ticker=str(payload.get("ticker") or "IWM").strip(),
+            direction=str(payload.get("direction") or "Bullish").strip(),
+            entry=str(payload.get("entry") or "").strip(),
+            exit=str(payload.get("exit") or "").strip(),
+            thesis=str(payload.get("thesis") or "").strip(),
+            notes=str(payload.get("notes") or "").strip(),
+        )
+    except Exception as exc:
+        trace("trademaster.review.error", error=str(exc), traceback=traceback.format_exc())
+        return {"ok": False, "message": f"Trade review failed: {exc}"}
+    return {"ok": True, "message": f"Trade review saved: {saved}", "saved": str(saved), "trademaster": trademaster_status()}
+
+
 def clean_chat_text(text: str) -> str:
     text = text.strip()
     for start, end in (("<think>", "</think>"), ("<|channel>thought", "<channel|>")):
@@ -445,7 +600,7 @@ def route_remote_command(prompt: str, history: list[dict] | None = None) -> dict
         return run_codex_command(task)
     if lowered.startswith("/trademaster ") or "trademaster" in lowered:
         task = _strip_command_prefix(text, ("/trademaster",))
-        return fusiondesk_chat(f"Use FusionDesk {task}")
+        return fusiondesk_chat(f"Use FusionDesk {task}", history=history or [])
     return route_chat(text, history or [])
 
 
@@ -735,10 +890,10 @@ def route_chat(prompt: str, history: list[dict]) -> dict:
     route = chat_route(prompt)
     if route == "fusiondesk_assign":
         trace("router.route", route_selected="fusiondesk_assign", skipped_local_model=True)
-        return fusiondesk_chat(prompt)
+        return fusiondesk_chat(prompt, history=history)
     if route == "fusiondesk_default":
         trace("router.route", route_selected="fusiondesk_default", skipped_local_model=True)
-        return fusiondesk_chat(prompt)
+        return fusiondesk_chat(prompt, history=history)
     if route == "disabled":
         trace("router.route", route_selected="disabled", skipped_local_model=True)
         return local_chat_disabled_response()
@@ -757,7 +912,7 @@ def fusiondesk_task_from_prompt(prompt: str) -> str:
     return task
 
 
-def fusiondesk_chat(prompt: str) -> dict:
+def fusiondesk_chat(prompt: str, history: list[dict] | None = None) -> dict:
     trace("fusiondesk_chat.enter", prompt=prompt)
     task = fusiondesk_task_from_prompt(prompt)
 
@@ -776,9 +931,10 @@ def fusiondesk_chat(prompt: str) -> dict:
         trace("fusiondesk_chat.return", ok=False, message=result.get("message"))
         return result
 
+    memory_context = build_fusiondesk_memory_context((history or []) + [{"role": "user", "content": prompt}], result)
     trace("fusiondesk_chat.skill_detection", selected_skill=result.get("selected_skill"))
     trace("fusiondesk_chat.execution.start", connector="openrouter")
-    execution = ExecutionEngine.load().execute(task=task, plan=result)
+    execution = ExecutionEngine.load().execute(task=task, plan=result, memory_context=memory_context)
     trace(
         "fusiondesk_chat.execution.returned",
         ok=execution.get("ok"),
@@ -791,6 +947,7 @@ def fusiondesk_chat(prompt: str) -> dict:
         "message": execution.get("message", ""),
         "fusiondesk": result,
         "execution": execution.get("execution", {}),
+        "memory_context": memory_context,
         "route": "fusiondesk",
         "router_status": "FusionDesk",
         "seat_engine_status": "Executed" if execution.get("ok") else "Execution Error",
@@ -954,6 +1111,20 @@ class Handler(BaseHTTPRequestHandler):
                     "confidence": result.get("confidence"),
                 },
             )
+        memory_context = build_fusiondesk_memory_context(
+            SESSION_STORE.messages(session_id) if session_id else [{"role": "user", "content": prompt}],
+            result,
+        )
+        if session_id and assistant_id:
+            SESSION_STORE.update_message(
+                session_id,
+                assistant_id,
+                metadata={
+                    "memory_recap": memory_context.get("recap"),
+                    "known_facts": memory_context.get("facts", {}),
+                    "tool_state": memory_context.get("tool_state", {}),
+                },
+            )
         self.send_stream_event(
             {
                 "type": "plan",
@@ -962,10 +1133,12 @@ class Handler(BaseHTTPRequestHandler):
                 "connectors": result.get("connectors"),
                 "seat_assignments": result.get("seat_assignments"),
                 "confidence": result.get("confidence"),
+                "memory_recap": memory_context.get("recap"),
+                "tool_state": memory_context.get("tool_state"),
             }
         )
         streamed = ""
-        for event in ExecutionEngine.load().execute_stream(task=task, plan=result):
+        for event in ExecutionEngine.load().execute_stream(task=task, plan=result, memory_context=memory_context):
             if event.get("type") == "token":
                 streamed += event.get("text") or ""
                 if session_id and assistant_id:
@@ -1006,10 +1179,23 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/models/status":
             self.send_json(model_status())
             return
+        if path == "/api/capabilities":
+            self.send_json(capability_matrix())
+            return
+        if path == "/api/trademaster/status":
+            self.send_json(trademaster_status())
+            return
         if path == "/api/session":
             session_id = normalize_session_id((query.get("session_id") or [""])[0])
             session = SESSION_STORE.get(session_id)
-            self.send_json({"ok": True, "session_id": session_id, "messages": session.get("messages", [])})
+            messages = session.get("messages", [])
+            self.send_json({
+                "ok": True,
+                "session_id": session_id,
+                "messages": messages,
+                "facts": extract_user_facts(messages),
+                "memory_recap": session_memory_recap(messages),
+            })
             return
         if path == "/assets/logo.png":
             self.serve_file(ROOT / "assets" / "icons" / "claude-local-thumbnail.png", "image/png")
@@ -1119,6 +1305,9 @@ class Handler(BaseHTTPRequestHandler):
             session_id = normalize_session_id(payload.get("session_id"))
             SESSION_STORE.clear(session_id)
             self.send_json({"ok": True, "message": "Session cleared.", "session_id": session_id})
+            return
+        if path == "/api/trademaster/review":
+            self.send_json(run_trademaster_review(payload))
             return
         self.send_error(404)
 

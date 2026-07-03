@@ -1,0 +1,79 @@
+{
+  "version": "2026-07-03",
+  "name": "FusionDesk Capability Matrix",
+  "principle": "Add capabilities through registries, modules, and connectors before installing new repos.",
+  "capabilities": [
+    {
+      "id": "trademaster",
+      "name": "TradeMaster",
+      "purpose": "Trading review, premium reload lessons, market prep, risk review, and decision support.",
+      "status": "active_module",
+      "primary_surfaces": ["dashboard_tab", "skills_registry", "flint_trading_memory"],
+      "connectors": ["polygon_io", "agent_reach", "openrouter", "local_filesystem"],
+      "next_steps": ["show stats", "show lessons", "run trade review"]
+    },
+    {
+      "id": "content_factory",
+      "name": "Content Factory",
+      "purpose": "Repurpose long-form content, generate social posts, scripts, clips, and campaign assets.",
+      "status": "planned_module",
+      "primary_surfaces": ["social_studio", "ai_media_skills", "marketing_skills"],
+      "connectors": ["openrouter", "runpod", "local_filesystem"],
+      "next_steps": ["select first content workflow", "map approval loop", "keep AutoShorts reference-only"]
+    },
+    {
+      "id": "lead_engine",
+      "name": "Lead Engine",
+      "purpose": "Lead research, offer creation, CRM follow-up, audits, and AI arbitrage outreach.",
+      "status": "planned_module",
+      "primary_surfaces": ["business_skills", "research_skills"],
+      "connectors": ["agent_reach", "browser_automation", "openrouter", "local_filesystem"],
+      "next_steps": ["choose AI Receptionist or Lead Generation Agent", "define lead schema"]
+    },
+    {
+      "id": "research_engine",
+      "name": "Research Engine",
+      "purpose": "Web research, competitor research, tool evaluation, repo comparison, and source-backed synthesis.",
+      "status": "registry_defined",
+      "primary_surfaces": ["research_skills", "agent_reach_connector"],
+      "connectors": ["agent_reach", "github", "browser_automation", "openrouter"],
+      "next_steps": ["confirm live internet connector state before claims", "add evidence display"]
+    },
+    {
+      "id": "voice_agents",
+      "name": "Voice Agents",
+      "purpose": "Voice input, spoken responses, receptionist flows, and phone-friendly command handling.",
+      "status": "partial_dashboard_support",
+      "primary_surfaces": ["dashboard_voice", "telegram", "phone_bridge"],
+      "connectors": ["openrouter", "local_filesystem"],
+      "next_steps": ["decide AI Receptionist workflow", "define call/voice provider later"]
+    },
+    {
+      "id": "website_factory",
+      "name": "Website Factory",
+      "purpose": "Create and audit landing pages, funnels, client sites, and offer pages.",
+      "status": "planned_module",
+      "primary_surfaces": ["marketing_skills", "development_skills"],
+      "connectors": ["github", "browser_automation", "openrouter", "local_filesystem"],
+      "next_steps": ["choose template stack", "connect repo intelligence after CodeGraph planning"]
+    },
+    {
+      "id": "repo_intelligence",
+      "name": "Repo Intelligence",
+      "purpose": "Codebase maps, architecture analysis, review, test planning, and implementation guidance.",
+      "status": "planned_module",
+      "primary_surfaces": ["development_skills", "backlog_codegraph"],
+      "connectors": ["github", "local_filesystem", "openrouter"],
+      "next_steps": ["keep CodeGraph backlog-only", "define codebase brain map output"]
+    },
+    {
+      "id": "flint_memory",
+      "name": "Flint Memory",
+      "purpose": "Persistent local memory for projects, trading lessons, loops, architecture, and decisions.",
+      "status": "active_memory_layer",
+      "primary_surfaces": ["flint_folder", "dashboard_brain_tab"],
+      "connectors": ["local_filesystem", "openrouter"],
+      "next_steps": ["show memory recap", "avoid rewriting vault without backup"]
+    }
+  ]
+}

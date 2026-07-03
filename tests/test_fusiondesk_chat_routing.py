@@ -5,7 +5,8 @@ from dashboard.server import chat, fusiondesk_chat, is_fusiondesk_chat, route_ch
 
 
 class FakeExecutionEngine:
-    def execute(self, *, task, plan):
+    def execute(self, *, task, plan, memory_context=None):
+        self.memory_context = memory_context or {}
         return {
             "ok": True,
             "message": f"Executed: {task}",
@@ -91,6 +92,7 @@ def test_fusiondesk_chat_returns_without_model_call(monkeypatch):
     assert result["message"] == "Executed: web research competitor AI dashboards with sources"
     assert result["execution"]["connector"] == "openrouter"
     assert result["local_model_status"] == "Bypassed"
+    assert "memory_context" in result
 
 
 def test_use_fusiondesk_assign_seats_routes_to_fusiondesk_without_qwen(monkeypatch):

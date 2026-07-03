@@ -1,0 +1,16 @@
+{
+  "trade_review": [
+    "scout",
+    "builder",
+    "judge"
+  ],
+  "video_research": [
+    "scout",
+    "builder"
+  ],
+  "market_research": [
+    "scout",
+    "strategist",
+    "judge"
+  ]
+}

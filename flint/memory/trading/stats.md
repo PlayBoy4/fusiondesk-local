@@ -1,16 +1,16 @@
 # TradeMaster Stats
 
-Total Reviews: 2
+Total Reviews: 3
 
 ## Tickers
-- IWM: 2
+- IWM: 3
 
 ## Execution Grades
-- B: 2
+- B: 3
 
 ## Repeated Lessons
-- - Exited too early. (2)
-- - Leave runner contracts. (2)
-- - Premium floor held. (2)
-- - Scale out. (2)
-- - Second retest worked. (2)
+- - Exited too early. (3)
+- - Leave runner contracts. (3)
+- - Premium floor held. (3)
+- - Scale out. (3)
+- - Second retest worked. (3)

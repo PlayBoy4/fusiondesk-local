@@ -1,0 +1,28 @@
+{
+  "skills": [
+    {
+      "id": "trade_review",
+      "name": "Trade Review",
+      "category": "trading",
+      "seat": "builder",
+      "loop": "trademaster",
+      "memory": true
+    },
+    {
+      "id": "video_research",
+      "name": "Video Research",
+      "category": "research",
+      "seat": "scout",
+      "loop": "fusiondesk",
+      "memory": true
+    },
+    {
+      "id": "market_research",
+      "name": "Market Research",
+      "category": "trading",
+      "seat": "strategist",
+      "loop": "trademaster",
+      "memory": true
+    }
+  ]
+}

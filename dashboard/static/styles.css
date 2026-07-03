@@ -327,6 +327,51 @@ textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(66,245,25
 }
 .seat-card strong { display: block; margin: 4px 0; overflow-wrap: anywhere; }
 .seat-card p, .warning-list p { margin: 0; color: var(--muted); line-height: 1.45; }
+.memory-box {
+  min-height: 260px;
+  max-height: 460px;
+  overflow: auto;
+  white-space: pre-wrap;
+  position: relative;
+  z-index: 1;
+  padding: 14px;
+  border: 1px solid rgba(115,239,255,0.18);
+  border-radius: 8px;
+  background: rgba(0, 7, 16, 0.78);
+  color: #bdf8ff;
+}
+.memory-list, .capability-grid {
+  display: grid;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.capability-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.memory-card, .capability-card {
+  border: 1px solid rgba(115,239,255,0.24);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(0, 8, 18, 0.62);
+}
+.memory-card pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 10px 0 0;
+  white-space: pre-wrap;
+  color: var(--muted);
+}
+.capability-card span {
+  display: block;
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.capability-card strong { display: block; margin-top: 6px; }
+.capability-card p { color: var(--muted); line-height: 1.45; }
+.capability-card small { color: #bdf8ff; overflow-wrap: anywhere; }
 .warning-list {
   display: grid;
   gap: 8px;

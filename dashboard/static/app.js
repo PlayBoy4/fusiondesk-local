@@ -148,6 +148,7 @@ async function refresh() {
     $("flintStatus").textContent = data.flint.installed ? "Installed" : "Ready to add";
     $("flintInstall").textContent = data.flint.installCommand;
   }
+  await Promise.allSettled([loadTradeMaster(), loadCapabilities()]);
 }
 
 function introMessage() {
@@ -174,12 +175,44 @@ async function loadSession() {
     const data = await api(`/api/session?session_id=${encodeURIComponent(sessionId)}`);
     if (data.ok) {
       renderMessages(data.messages || []);
+      if ($("memoryRecap")) $("memoryRecap").textContent = data.memory_recap || "No prior session memory available.";
       if ($("sessionStatus")) $("sessionStatus").textContent = "Persistent";
     }
   } catch (error) {
     console.warn("[FusionDeskTrace] session reconnect failed", error);
     if ($("sessionStatus")) $("sessionStatus").textContent = "Reconnecting";
   }
+}
+
+async function loadTradeMaster() {
+  if (!$("trademasterStats")) return;
+  const data = await api("/api/trademaster/status");
+  if (!data.ok) return;
+  $("trademasterStats").textContent = data.stats || "No stats generated yet.";
+  $("trademasterLessons").textContent = data.lessons || "No lessons generated yet.";
+  $("trademasterReviews").innerHTML = (data.recentReviews || []).map((review) => `
+    <div class="memory-card">
+      <strong>${escapeHtml(review.name)}</strong>
+      <pre>${escapeHtml(review.preview || "")}</pre>
+    </div>
+  `).join("") || `<p class="muted">No reviews yet.</p>`;
+}
+
+async function loadCapabilities() {
+  if (!$("capabilityMatrix")) return;
+  const data = await api("/api/capabilities");
+  if (!data.ok) {
+    $("capabilityMatrix").innerHTML = `<p class="muted">${escapeHtml(data.message || "Capability matrix unavailable.")}</p>`;
+    return;
+  }
+  $("capabilityMatrix").innerHTML = (data.capabilities || []).map((item) => `
+    <div class="capability-card">
+      <span>${escapeHtml(item.status)}</span>
+      <strong>${escapeHtml(item.name)}</strong>
+      <p>${escapeHtml(item.purpose)}</p>
+      <small>${escapeHtml((item.connectors || []).join(", "))}</small>
+    </div>
+  `).join("");
 }
 
 async function action(path, successPrefix) {
@@ -427,6 +460,24 @@ $("seatForm").addEventListener("submit", async (event) => {
   renderSeatAssignment(data);
 });
 
+$("tradeReviewForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("tradeReviewResult").textContent = "Running trade review...";
+  const data = await api("/api/trademaster/review", {
+    method: "POST",
+    body: JSON.stringify({
+      ticker: $("tradeTicker").value.trim(),
+      direction: $("tradeDirection").value.trim(),
+      entry: $("tradeEntry").value.trim(),
+      exit: $("tradeExit").value.trim(),
+      thesis: $("tradeThesis").value.trim(),
+      notes: $("tradeNotes").value.trim(),
+    }),
+  });
+  $("tradeReviewResult").textContent = data.message || (data.ok ? "Trade review complete." : "Trade review failed.");
+  if (data.ok) await loadTradeMaster();
+});
+
 $("prompt").addEventListener("input", (event) => {
   event.target.style.height = "auto";
   event.target.style.height = `${Math.min(event.target.scrollHeight, 160)}px`;
@@ -451,6 +502,9 @@ $("chatForm").addEventListener("submit", async (event) => {
       data = await streamFusionDeskChat(prompt, state.history.slice(0, -1), (event) => {
         if (event.type === "plan") {
           setRouteStatus({ router: "FusionDesk", seatEngine: "Executing", localModel: "Bypassed" });
+          if (event.memory_recap) {
+            updateMessage(pendingRow, `Context recap:\n${event.memory_recap}\n\nChecking tool state before execution...`);
+          }
         }
         if (event.type === "start") {
           setRouteStatus({ router: "FusionDesk", seatEngine: `Executing ${event.model}`, localModel: "Bypassed" });

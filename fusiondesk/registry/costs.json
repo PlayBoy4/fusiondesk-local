@@ -1,0 +1,10 @@
+{
+  "target_efficiency": 0.95,
+  "seat_distribution": {
+    "deepseek": 0.85,
+    "sonnet": 0.10,
+    "gpt5": 0.04,
+    "fable5": 0.009,
+    "opus48": 0.001
+  }
+}

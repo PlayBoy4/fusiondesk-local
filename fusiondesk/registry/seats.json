@@ -1,0 +1,22 @@
+{
+  "scout": {
+    "model": "deepseek/deepseek-chat",
+    "purpose": "cheap discovery"
+  },
+  "builder": {
+    "model": "anthropic/claude-sonnet-4",
+    "purpose": "implementation"
+  },
+  "strategist": {
+    "model": "openai/gpt-5",
+    "purpose": "planning"
+  },
+  "judge": {
+    "model": "anthropic/claude-fable-5",
+    "purpose": "final decision"
+  },
+  "nuclear": {
+    "model": "anthropic/claude-opus-4.8",
+    "purpose": "critical reasoning"
+  }
+}

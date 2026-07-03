@@ -15,11 +15,10 @@ OPENROUTER_URL = os.environ.get("OPENROUTER_URL", "https://openrouter.ai/api/v1/
 
 
 MODEL_PRIORITY = [
-    "deepseek/deepseek-chat",
     "anthropic/claude-sonnet-4",
-    "openai/gpt-5",
-    "anthropic/claude-fable-5",
-    "anthropic/claude-opus-4.8",
+    "openai/gpt-4o",
+    "google/gemini-2.5-flash",
+    "openai/gpt-4o-mini",
 ]
 
 OPENROUTER_MODEL_IDS = {
@@ -210,7 +209,7 @@ class ExecutionEngine:
     def load(cls) -> "ExecutionEngine":
         return cls(connectors={"openrouter": OpenRouterConnector()})
 
-    def execute(self, *, task: str, plan: dict[str, Any]) -> dict[str, Any]:
+    def execute(self, *, task: str, plan: dict[str, Any], memory_context: dict[str, Any] | None = None) -> dict[str, Any]:
         connectors = plan.get("connectors", [])
         if "openrouter" not in connectors:
             return {
@@ -221,7 +220,7 @@ class ExecutionEngine:
                 "execution": {"attempts": [], "connector": None, "model": None},
             }
 
-        messages = self._messages(task=task, plan=plan)
+        messages = self._messages(task=task, plan=plan, memory_context=memory_context)
         reset_model_status()
         attempts = []
         last_error = ""
@@ -272,7 +271,7 @@ class ExecutionEngine:
             },
         }
 
-    def execute_stream(self, *, task: str, plan: dict[str, Any]):
+    def execute_stream(self, *, task: str, plan: dict[str, Any], memory_context: dict[str, Any] | None = None):
         connectors = plan.get("connectors", [])
         if "openrouter" not in connectors:
             yield {
@@ -282,7 +281,7 @@ class ExecutionEngine:
             }
             return
 
-        messages = self._messages(task=task, plan=plan)
+        messages = self._messages(task=task, plan=plan, memory_context=memory_context)
         reset_model_status()
         attempts = []
         last_error = ""
@@ -358,14 +357,23 @@ class ExecutionEngine:
         except (ValueError, IndexError):
             return None
 
-    def _messages(self, *, task: str, plan: dict[str, Any]) -> list[dict[str, str]]:
+    def _messages(
+        self,
+        *,
+        task: str,
+        plan: dict[str, Any],
+        memory_context: dict[str, Any] | None = None,
+    ) -> list[dict[str, str]]:
         seats = ", ".join(
             f"{item.get('seat')}={item.get('model')}" for item in plan.get("seat_assignments", [])
         )
         system = (
             "You are FusionDesk AI. Execute the selected skill and answer the user directly. "
             "Do not print the seat assignment JSON unless the user asks for the plan. "
-            "Be concise, useful, and explicit about assumptions."
+            "Be concise, useful, and explicit about assumptions. "
+            "Use the session memory recap when answering identity, birthday, preference, or 'I already gave it' questions. "
+            "Never claim live internet, market data, filesystem, browser, GitHub, RunPod, or other tool access unless Tool State says that connector is active. "
+            "If a connector is registered but inactive, say it is registered but not available for this response."
         )
         context = (
             f"Selected skill: {plan.get('selected_skill')}\n"
@@ -375,7 +383,18 @@ class ExecutionEngine:
             f"Confidence: {plan.get('confidence')}\n"
             f"Warnings: {', '.join(plan.get('warnings', []))}"
         )
+        memory = memory_context or {}
+        context_parts = [context]
+        if memory.get("recap"):
+            context_parts.append(f"Session memory recap:\n{memory['recap']}")
+        if memory.get("facts"):
+            facts = "\n".join(f"- {key}: {value}" for key, value in memory["facts"].items())
+            context_parts.append(f"Known user facts from this session:\n{facts}")
+        if memory.get("tool_state"):
+            tool_lines = "\n".join(f"- {key}: {value}" for key, value in memory["tool_state"].items())
+            context_parts.append(f"Tool State:\n{tool_lines}")
+        context_text = "\n\n".join(context_parts)
         return [
             {"role": "system", "content": system},
-            {"role": "user", "content": f"{context}\n\nUser task:\n{task}"},
+            {"role": "user", "content": f"{context_text}\n\nUser task:\n{task}"},
         ]

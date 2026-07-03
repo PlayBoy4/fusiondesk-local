@@ -36,6 +36,18 @@ High
 
 ---
 
+## CodeGraph
+Purpose:
+Repo intelligence / codebase brain map for architecture analysis, dependency maps, implementation planning, and review context.
+
+Status:
+Backlog only. Do not install yet.
+
+Priority:
+Medium
+
+---
+
 ## Autonomous Loops
 Purpose:
 Self-running FusionDesk workflows.

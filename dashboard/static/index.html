@@ -20,6 +20,8 @@
         </div>
         <nav>
           <button class="nav active" data-view="chat">Chat</button>
+          <button class="nav" data-view="trademaster">TradeMaster</button>
+          <button class="nav" data-view="capabilities">Map</button>
           <button class="nav" data-view="stack">Stack</button>
           <button class="nav" data-view="seats">Seats</button>
           <button class="nav" data-view="brain">Brain</button>
@@ -80,6 +82,7 @@
               <div class="metric"><span>Phone URL</span><strong id="lanUrl">-</strong></div>
               <div class="metric"><span>Session</span><strong id="sessionStatus">Checking</strong></div>
               <div class="metric"><span>Telegram</span><strong id="telegramStatus">Checking</strong></div>
+              <div class="metric"><span>Memory Recap</span><strong id="memoryRecap">Loading</strong></div>
               <div class="route-status">
                 <div><span>FusionDesk</span><strong id="routerStatus">Checking</strong></div>
                 <div><span>Seat Engine</span><strong id="seatEngineStatus">Idle</strong></div>
@@ -94,6 +97,66 @@
               <button id="openClaudeBtn" class="wide">Open Claude Local</button>
             </div>
           </div>
+        </section>
+
+        <section id="trademaster" class="view">
+          <div class="grid">
+            <article class="panel">
+              <p class="eyebrow">Trading memory module</p>
+              <h2>TradeMaster Stats</h2>
+              <pre id="trademasterStats" class="memory-box">Loading TradeMaster stats...</pre>
+            </article>
+            <article class="panel">
+              <p class="eyebrow">Premium reload memory</p>
+              <h2>Lessons</h2>
+              <pre id="trademasterLessons" class="memory-box">Loading lessons...</pre>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Trade Review Runner</h2>
+              <form id="tradeReviewForm" class="seat-form">
+                <div class="form-grid">
+                  <label>
+                    <span>Ticker</span>
+                    <input id="tradeTicker" value="IWM" />
+                  </label>
+                  <label>
+                    <span>Direction</span>
+                    <input id="tradeDirection" value="Bullish" />
+                  </label>
+                  <label>
+                    <span>Entry</span>
+                    <input id="tradeEntry" placeholder="0.24" />
+                  </label>
+                  <label>
+                    <span>Exit</span>
+                    <input id="tradeExit" placeholder="0.40" />
+                  </label>
+                </div>
+                <label>
+                  <span>Thesis</span>
+                  <textarea id="tradeThesis" rows="3" placeholder="Premium reload, second retest, higher time frame context"></textarea>
+                </label>
+                <label>
+                  <span>Notes</span>
+                  <textarea id="tradeNotes" rows="3" placeholder="Execution notes, what worked, what to improve"></textarea>
+                </label>
+                <button class="primary" type="submit">Run Trade Review</button>
+              </form>
+              <p id="tradeReviewResult" class="muted">No review run yet.</p>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Recent Reviews</h2>
+              <div id="trademasterReviews" class="memory-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="capabilities" class="view">
+          <article class="panel wide-panel">
+            <p class="eyebrow">FusionDesk master map</p>
+            <h2>Capability Matrix</h2>
+            <div id="capabilityMatrix" class="capability-grid"></div>
+          </article>
         </section>
 
         <section id="stack" class="view">
