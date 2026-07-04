@@ -1,0 +1,58 @@
+from pathlib import Path
+
+OUT = Path(
+    "flint/projects/ContentFactory/GTA6/concepts/asset_prompts.md"
+)
+
+prompts = """
+# GTA 6 Asset Prompts
+
+## Scene 1
+
+Prompt:
+Cinematic Miami skyline at sunset,
+neon lights,
+luxury sports cars,
+ultra realistic,
+Grand Theft Auto inspired atmosphere,
+dramatic lighting,
+16:9
+
+## Scene 2
+
+Prompt:
+YouTube creator economy montage,
+streamers,
+gaming setups,
+money graphics,
+high energy editing style
+
+## Scene 3
+
+Prompt:
+Massive GTA roleplay server city,
+thousands of players,
+luxury businesses,
+nightlife,
+ultra detailed
+
+## Scene 4
+
+Prompt:
+AI concept art of GTA 6 luxury mansions,
+Vice City inspired architecture,
+palm trees,
+hyper realistic
+
+## Scene 5
+
+Prompt:
+Gold rush economy concept,
+money raining,
+gaming industry explosion,
+cinematic style
+"""
+
+OUT.write_text(prompts)
+
+print("created:", OUT)
