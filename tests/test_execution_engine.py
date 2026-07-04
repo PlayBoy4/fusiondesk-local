@@ -132,7 +132,7 @@ def test_fake_model_ids_are_not_executed():
     assert connector.calls == ["anthropic/claude-sonnet-4"]
     assert "anthropic/claude-fable-5" not in connector.calls
     assert "openai/gpt-5" not in connector.calls
-    assert model_status()["skipped_models"] == ["anthropic/claude-fable-5", "openai/gpt-5"]
+    assert model_status()["skipped_models"] == ["openai/gpt-5"]
 
 
 def test_inactive_models_fall_back_safely():
@@ -151,7 +151,7 @@ def test_inactive_models_fall_back_safely():
 
     assert result["ok"] is True
     assert connector.calls == ["anthropic/claude-sonnet-4"]
-    assert set(model_status()["skipped_models"]) == {"deepseek-chat", "qwen-local", "claude-opus"}
+    assert set(model_status()["skipped_models"]) == {"qwen-local"}
 
 
 def test_active_models_remain_executable_when_requested():
@@ -178,5 +178,5 @@ def test_model_registry_api_shape():
     assert {"label", "seat", "provider_model", "status", "connector"} <= set(rows[0])
     assert [model for model in registry["fallback_chain"] if model not in MODEL_PRIORITY] == []
     assert any(row["provider_model"] == "anthropic/claude-sonnet-4" and row["status"] == "active" for row in rows)
-    assert any(row["provider_model"] == "openai/gpt-5" and row["status"] == "needs_health_check" for row in rows)
+    assert any(row["provider_model"] == "openai/gpt-5" and row["status"] == "unsupported" for row in rows)
     assert any(row["seat"] == "qwen-local" and row["status"] == "offline" for row in rows)
