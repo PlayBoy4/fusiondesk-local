@@ -84,7 +84,12 @@
         "headline_risk_scoring",
         "social_sentiment_monitoring",
         "confidence_adjustment",
-        "pass_mode_trigger"
+        "pass_mode_trigger",
+        "trump_truth_social_monitoring",
+        "trump_x_monitoring",
+        "political_headline_market_impact",
+        "policy_risk_detection",
+        "tariff_trade_war_risk_detection"
       ]
     }
   ]
