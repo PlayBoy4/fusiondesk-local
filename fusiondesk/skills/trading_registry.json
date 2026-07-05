@@ -1,6 +1,5 @@
 {
   "skills": [
-
     {
       "id": "thesis_engine",
       "name": "TradeMaster Thesis Engine",
@@ -14,7 +13,6 @@
         "thesis_generation"
       ]
     },
-
     {
       "id": "premium_engine",
       "name": "Premium Engine",
@@ -27,7 +25,6 @@
         "premium_expansion_tracking"
       ]
     },
-
     {
       "id": "liquidity_engine",
       "name": "Liquidity Engine",
@@ -40,7 +37,6 @@
         "invalidation_detection"
       ]
     },
-
     {
       "id": "bias_engine",
       "name": "Bias Engine",
@@ -52,7 +48,6 @@
         "market_structure_analysis"
       ]
     },
-
     {
       "id": "a_plus_filter",
       "name": "A+ Setup Filter",
@@ -65,7 +60,6 @@
         "pass_mode"
       ]
     },
-
     {
       "id": "trade_memory",
       "name": "Trade Memory System",
@@ -76,6 +70,21 @@
         "lesson_extraction",
         "pattern_detection",
         "performance_tracking"
+      ]
+    },
+    {
+      "id": "breaking_news_sentiment_agent",
+      "name": "Breaking News Sentiment Agent",
+      "status": "planned",
+      "category": "trading",
+      "capabilities": [
+        "breaking_news_scan",
+        "market_sentiment_analysis",
+        "macro_event_detection",
+        "headline_risk_scoring",
+        "social_sentiment_monitoring",
+        "confidence_adjustment",
+        "pass_mode_trigger"
       ]
     }
   ]
