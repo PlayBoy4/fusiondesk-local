@@ -6,7 +6,17 @@
       "type": "local",
       "role": "brain",
       "status": "active",
-      "capabilities": ["fusiondesk", "flint", "trademaster", "orchestration"]
+      "online": true,
+      "location": "Cleveland",
+      "connection": "local",
+      "gpu": null,
+      "cost_per_hour": 0,
+      "capabilities": [
+        "fusiondesk",
+        "flint",
+        "trademaster",
+        "orchestration"
+      ]
     },
     {
       "id": "texas-datacenter-01",
@@ -14,7 +24,17 @@
       "type": "remote",
       "role": "future-private-cloud",
       "status": "planned",
-      "capabilities": ["codex", "fusiondesk", "trademaster", "future-media"]
+      "online": false,
+      "location": "Texas",
+      "connection": "tailscale",
+      "gpu": "RX6600",
+      "cost_per_hour": 0,
+      "capabilities": [
+        "codex",
+        "fusiondesk",
+        "trademaster",
+        "future-media"
+      ]
     },
     {
       "id": "runpod-media-01",
@@ -22,7 +42,16 @@
       "type": "cloud-gpu",
       "role": "burst-media",
       "status": "paused",
-      "capabilities": ["voice", "image", "video"]
+      "online": false,
+      "location": "RunPod",
+      "connection": "cloud",
+      "gpu": "RTX4090",
+      "cost_per_hour": 0.70,
+      "capabilities": [
+        "voice",
+        "image",
+        "video"
+      ]
     }
   ]
 }
