@@ -1,0 +1,28 @@
+{
+  "nodes": [
+    {
+      "id": "macbook-local",
+      "name": "Geez MacBook",
+      "type": "local",
+      "role": "brain",
+      "status": "active",
+      "capabilities": ["fusiondesk", "flint", "trademaster", "orchestration"]
+    },
+    {
+      "id": "texas-datacenter-01",
+      "name": "Texas Datacenter 01",
+      "type": "remote",
+      "role": "future-private-cloud",
+      "status": "planned",
+      "capabilities": ["codex", "fusiondesk", "trademaster", "future-media"]
+    },
+    {
+      "id": "runpod-media-01",
+      "name": "RunPod Media 01",
+      "type": "cloud-gpu",
+      "role": "burst-media",
+      "status": "paused",
+      "capabilities": ["voice", "image", "video"]
+    }
+  ]
+}
