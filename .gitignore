@@ -23,3 +23,4 @@ phone/claude-screen-to-phone/config.sh
 phone/claude-screen-to-phone/.venv/
 phone/claude-screen-to-phone/.env
 phone/claude-screen-to-phone/.env.*
+fusiondesk/skills/registry.backup.json
