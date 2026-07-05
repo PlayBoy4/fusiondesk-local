@@ -1,0 +1,86 @@
+{
+  "skills": [
+
+    {
+      "id": "growth_engine",
+      "name": "Growth Engine",
+      "status": "active",
+      "category": "marketing",
+      "capabilities": [
+        "ab_testing",
+        "statistical_analysis",
+        "winner_selection",
+        "conversion_optimization"
+      ]
+    },
+
+    {
+      "id": "podcast_ops",
+      "name": "Podcast Operations",
+      "status": "active",
+      "category": "content",
+      "capabilities": [
+        "podcast_to_blog",
+        "podcast_to_youtube",
+        "podcast_to_reels",
+        "podcast_to_tiktok",
+        "podcast_to_threads"
+      ]
+    },
+
+    {
+      "id": "deal_resurrector",
+      "name": "Deal Resurrector",
+      "status": "active",
+      "category": "sales",
+      "capabilities": [
+        "crm_tracking",
+        "lead_recovery",
+        "contact_monitoring",
+        "followup_automation"
+      ]
+    },
+
+    {
+      "id": "content_ops",
+      "name": "Content Operations",
+      "status": "active",
+      "category": "marketing",
+      "capabilities": [
+        "content_scoring",
+        "humanization",
+        "engagement_prediction",
+        "quality_control"
+      ]
+    },
+
+    {
+      "id": "x_humanizer",
+      "name": "X Humanizer",
+      "status": "active",
+      "category": "social",
+      "capabilities": [
+        "humanize_posts",
+        "long_form_threads",
+        "engagement_optimization"
+      ]
+    },
+
+    {
+      "id": "website_factory",
+      "name": "Website Factory",
+      "status": "active",
+      "category": "agency",
+      "capabilities": [
+        "discovery_calls",
+        "website_strategy",
+        "copywriting",
+        "wireframing",
+        "design_systems",
+        "mobile_optimization",
+        "client_handoff"
+      ]
+    }
+
+  ]
+}
