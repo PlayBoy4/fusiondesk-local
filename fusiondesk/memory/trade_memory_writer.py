@@ -23,7 +23,8 @@ def write_trade_review(
 ):
     REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
     date = datetime.now().strftime("%Y-%m-%d")
-    filename = f"{date}-{slug(ticker)}-trade-review.md"
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+    filename = f"{timestamp}-{slug(ticker)}-trade-review.md"
     path = REVIEWS_DIR / filename
 
     content = [
