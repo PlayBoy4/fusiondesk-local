@@ -1,0 +1,82 @@
+{
+  "skills": [
+
+    {
+      "id": "thesis_engine",
+      "name": "TradeMaster Thesis Engine",
+      "status": "active",
+      "category": "trading",
+      "capabilities": [
+        "trend_alignment",
+        "continuation_detection",
+        "reversal_detection",
+        "confidence_scoring",
+        "thesis_generation"
+      ]
+    },
+
+    {
+      "id": "premium_engine",
+      "name": "Premium Engine",
+      "status": "planned",
+      "category": "trading",
+      "capabilities": [
+        "premium_floor_detection",
+        "premium_reload_detection",
+        "premium_retest_detection",
+        "premium_expansion_tracking"
+      ]
+    },
+
+    {
+      "id": "liquidity_engine",
+      "name": "Liquidity Engine",
+      "status": "planned",
+      "category": "trading",
+      "capabilities": [
+        "liquidity_mapping",
+        "target_selection",
+        "sweep_detection",
+        "invalidation_detection"
+      ]
+    },
+
+    {
+      "id": "bias_engine",
+      "name": "Bias Engine",
+      "status": "planned",
+      "category": "trading",
+      "capabilities": [
+        "bias_shift_detection",
+        "trend_change_detection",
+        "market_structure_analysis"
+      ]
+    },
+
+    {
+      "id": "a_plus_filter",
+      "name": "A+ Setup Filter",
+      "status": "planned",
+      "category": "trading",
+      "capabilities": [
+        "setup_scoring",
+        "trade_validation",
+        "confidence_filtering",
+        "pass_mode"
+      ]
+    },
+
+    {
+      "id": "trade_memory",
+      "name": "Trade Memory System",
+      "status": "active",
+      "category": "trading",
+      "capabilities": [
+        "trade_reviews",
+        "lesson_extraction",
+        "pattern_detection",
+        "performance_tracking"
+      ]
+    }
+  ]
+}
