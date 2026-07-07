@@ -139,6 +139,7 @@ def test_model_priority_uses_current_openrouter_models():
         "google/gemini-2.0-flash-001",
         "deepseek/deepseek-chat",
         "anthropic/claude-3.5-sonnet:beta",
+        "anthropic/claude-fable-5",
     ]
 
 
@@ -157,8 +158,8 @@ def test_fake_model_ids_are_not_executed():
     plan = {
         **PLAN,
         "seat_assignments": [
-            {"seat": "judge", "model": "anthropic/claude-fable-5", "reason": "not verified"},
             {"seat": "strategist", "model": "openai/gpt-5", "reason": "not verified"},
+            {"seat": "nuclear", "model": "anthropic/claude-opus-4.7", "reason": "not verified"},
         ],
     }
     connector = SuccessfulConnector()
@@ -168,9 +169,9 @@ def test_fake_model_ids_are_not_executed():
 
     assert result["ok"] is True
     assert connector.calls == ["openai/gpt-4o-mini"]
-    assert "anthropic/claude-fable-5" not in connector.calls
     assert "openai/gpt-5" not in connector.calls
-    assert model_status()["skipped_models"] == ["anthropic/claude-fable-5", "openai/gpt-5"]
+    assert "anthropic/claude-opus-4.7" not in connector.calls
+    assert model_status()["skipped_models"] == ["openai/gpt-5", "anthropic/claude-opus-4.7"]
 
 
 def test_inactive_models_fall_back_safely():
@@ -216,6 +217,7 @@ def test_model_registry_api_shape():
     assert {"label", "seat", "provider_model", "status", "connector"} <= set(rows[0])
     assert [model for model in registry["fallback_chain"] if model not in MODEL_PRIORITY] == []
     assert any(row["provider_model"] == "anthropic/claude-3.5-sonnet:beta" and row["status"] == "active" for row in rows)
+    assert any(row["provider_model"] == "anthropic/claude-fable-5" and row["status"] == "active" for row in rows)
     assert not any(row["provider_model"] == "anthropic/claude-3.5-sonnet" for row in rows)
     assert any(row["provider_model"] == "openai/gpt-5" and row["status"] == "unsupported" for row in rows)
     assert any(row["seat"] == "qwen-local" and row["status"] == "offline" for row in rows)

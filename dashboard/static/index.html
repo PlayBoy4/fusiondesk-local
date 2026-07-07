@@ -19,7 +19,8 @@
           </div>
         </div>
         <nav>
-          <button class="nav active" data-view="chat">Chat</button>
+          <button class="nav active" data-view="executive">Executive</button>
+          <button class="nav" data-view="chat">Chat</button>
           <button class="nav" data-view="trademaster">TradeMaster</button>
           <button class="nav" data-view="capabilities">Map</button>
           <button class="nav" data-view="missions">Missions</button>
@@ -57,7 +58,41 @@
           </div>
         </header>
 
-        <section id="chat" class="view active">
+        <section id="executive" class="view active">
+          <div class="grid">
+            <article class="panel wide-panel">
+              <p class="eyebrow">FusionDesk Executive OS</p>
+              <h2>Executive Dashboard</h2>
+              <div id="executiveMetrics" class="executive-metrics"></div>
+            </article>
+            <article class="panel">
+              <h2>Executive Command Center</h2>
+              <form id="executiveForm" class="seat-form">
+                <label>
+                  <span>Outcome</span>
+                  <textarea id="executiveGoal" rows="4" placeholder="Example: Find me 10 daycare clients and prepare the outreach workflow"></textarea>
+                </label>
+                <button class="primary" type="submit">Run Executive Command</button>
+              </form>
+            </article>
+            <article class="panel">
+              <h2>CEO Loop</h2>
+              <div id="ceoLoop" class="ceo-loop"></div>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Last Executive Command</h2>
+              <div id="executiveCurrent" class="health-detail">
+                <p class="muted">No executive command loaded.</p>
+              </div>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Recent Executive Commands</h2>
+              <div id="executiveCommands" class="mission-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="chat" class="view">
           <div class="chat-layout">
             <div class="chat-panel">
               <div id="messages" class="messages">

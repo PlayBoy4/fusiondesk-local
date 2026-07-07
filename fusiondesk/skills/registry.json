@@ -3669,6 +3669,170 @@
         "reliability"
       ],
       "status": "definition_only"
+    },
+    {
+      "id": "page_agent_ui_control",
+      "name": "Page Agent UI Control",
+      "category": "Browser Automation",
+      "module": "website_factory",
+      "description": "Plan natural-language control for owned web pages using a client-side Page Agent style JavaScript layer.",
+      "trigger_phrases": [
+        "page agent ui control",
+        "control this page with natural language",
+        "website ui copilot",
+        "page agent",
+        "voice control my website",
+        "form filling copilot"
+      ],
+      "required_tools": [
+        "local_filesystem",
+        "browser_automation"
+      ],
+      "optional_tools": [
+        "openrouter",
+        "agent_reach"
+      ],
+      "connectors": {
+        "required": [
+          "local_filesystem",
+          "browser_automation"
+        ],
+        "optional": [
+          "openrouter",
+          "agent_reach"
+        ]
+      },
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "RELAY",
+      "recommended_model_seats": [
+        "planner",
+        "builder",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only until the target page, allowed DOM actions, and model endpoint are configured.",
+        "Only use on websites/apps we own or have explicit permission to control.",
+        "Do not use for scraping, bypassing access controls, or automating third-party sites without permission.",
+        "Production setup should use NPM and a controlled model endpoint, not a public demo CDN.",
+        "Require user approval before enabling actions that submit forms, change account settings, purchase items, or publish content."
+      ],
+      "examples": [
+        {
+          "input": "Add a page agent UI copilot to my daycare admin dashboard.",
+          "output": "Implementation plan covering allowed page actions, model endpoint config, DOM control boundaries, tests, and rollout risks."
+        },
+        {
+          "input": "Plan natural language form filling for our FusionDesk-owned landing page.",
+          "output": "Client-side control plan with permitted fields, confirmation flow, accessibility notes, and verification steps."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "builder"
+      ],
+      "optional_seats": [
+        "reviewer",
+        "judge"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "coding_strength",
+        "reliability",
+        "context_length"
+      ],
+      "references": [
+        "alibaba/page-agent"
+      ],
+      "status": "definition_only"
+    },
+    {
+      "id": "agent_fleet_orchestration",
+      "name": "Agent Fleet Orchestration",
+      "category": "Development",
+      "module": "development",
+      "description": "Plan and supervise multiple coding agents running as a worker fleet, with HERD/herdr as a possible terminal process layer.",
+      "trigger_phrases": [
+        "agent fleet orchestration",
+        "run multiple coding agents",
+        "herd agents",
+        "herdr",
+        "keep agents running",
+        "reattach from phone",
+        "claude code and codex together"
+      ],
+      "required_tools": [
+        "local_filesystem"
+      ],
+      "optional_tools": [
+        "github",
+        "openrouter",
+        "browser_automation"
+      ],
+      "connectors": {
+        "required": [
+          "local_filesystem"
+        ],
+        "optional": [
+          "github",
+          "openrouter",
+          "browser_automation"
+        ]
+      },
+      "input_schema": {
+        "$ref": "#/shared_schemas/brief_input"
+      },
+      "output_schema": {
+        "$ref": "#/shared_schemas/plan_output"
+      },
+      "default_mode": "PANEL",
+      "recommended_model_seats": [
+        "planner",
+        "builder",
+        "reviewer",
+        "judge"
+      ],
+      "safety_risk_notes": [
+        "Definition-only until HERD installation path, session restore rules, socket API permissions, and process limits are configured.",
+        "FusionDesk remains the executive orchestrator; HERD is only a possible agent runner/process layer.",
+        "Require approval before spawning long-running paid or write-capable agents.",
+        "Use repo isolation, clear worktree ownership, and explicit stop/recover rules for parallel coding agents.",
+        "Review AGPL-3.0 license before commercial integration."
+      ],
+      "examples": [
+        {
+          "input": "Plan a HERD setup so Claude Code and Codex can work in parallel on this repo.",
+          "output": "Agent fleet plan with pane roles, repo ownership boundaries, reattach workflow, stop rules, and verification steps."
+        },
+        {
+          "input": "Design a phone reattach workflow for long-running coding agents.",
+          "output": "SSH/HERD workflow plan with agent statuses, persistence, safety checks, and recovery steps."
+        }
+      ],
+      "required_seats": [
+        "planner",
+        "builder",
+        "reviewer",
+        "judge"
+      ],
+      "optional_seats": [
+        "evidence_checker"
+      ],
+      "preferred_model_traits": [
+        "reasoning_strength",
+        "coding_strength",
+        "reliability",
+        "context_length"
+      ],
+      "references": [
+        "ogulcancevik/herdr"
+      ],
+      "status": "definition_only"
     }
   ]
 }

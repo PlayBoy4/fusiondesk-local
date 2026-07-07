@@ -7,6 +7,7 @@ const state = {
   sessionId: null,
   streaming: false,
   currentMission: null,
+  currentExecutiveCommand: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -149,7 +150,7 @@ async function refresh() {
     $("flintStatus").textContent = data.flint.installed ? "Installed" : "Ready to add";
     $("flintInstall").textContent = data.flint.installCommand;
   }
-  await Promise.allSettled([loadTradeMaster(), loadCapabilities(), loadMissions(), loadSystemHealth()]);
+  await Promise.allSettled([loadExecutiveDashboard(), loadTradeMaster(), loadCapabilities(), loadMissions(), loadSystemHealth()]);
 }
 
 function introMessage() {
@@ -258,6 +259,82 @@ function renderMission(mission) {
       <p>${escapeHtml(task.output || "No output yet.")}</p>
     </div>
   `).join("") || `<p class="muted">No tasks found for this mission.</p>`;
+}
+
+async function loadExecutiveDashboard() {
+  if (!$("executiveMetrics")) return;
+  const data = await api("/api/executive");
+  if (!data.ok) {
+    $("executiveMetrics").innerHTML = `<p class="muted">${escapeHtml(data.message || "Executive dashboard unavailable.")}</p>`;
+    return;
+  }
+  renderExecutiveDashboard(data);
+}
+
+function renderExecutiveDashboard(data) {
+  const metrics = [
+    ["Health", data.health == null ? "Not Connected" : `${data.health}%`],
+    ["Running Jobs", data.running_jobs ?? 0],
+    ["Active Missions", data.active_missions ?? 0],
+    ["Completed Tasks", data.completed_tasks ?? 0],
+    ["Failed Tasks", data.failed_tasks ?? 0],
+    ["Cost Today", data.cost_today || "Not Connected"],
+    ["Revenue Generated", data.revenue_generated || "Not Connected"],
+    ["Active Agents", data.active_agents ?? 0],
+    ["Registered Agents", data.registered_agents ?? 0],
+  ];
+  $("executiveMetrics").innerHTML = metrics.map(([label, value]) => `
+    <div class="executive-card">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `).join("");
+  $("ceoLoop").innerHTML = (data.ceo_loop || []).map((step, index) => `
+    <div class="loop-step">
+      <span>${index + 1}</span>
+      <strong>${escapeHtml(step)}</strong>
+    </div>
+  `).join("");
+  renderExecutiveCommand(data.last_command);
+  $("executiveCommands").innerHTML = (data.commands || []).map((command) => `
+    <button class="mission-row executive-command-row" type="button" data-command-id="${escapeHtml(command.id)}">
+      <span>${escapeHtml(command.status || "unknown")}</span>
+      <strong>${escapeHtml(command.user_goal || command.id)}</strong>
+      <small>${escapeHtml(command.task_count || 0)} tasks · approval ${command.approvals_required ? "needed" : "not needed"}</small>
+    </button>
+  `).join("") || `<p class="muted">No executive commands yet.</p>`;
+  document.querySelectorAll(".executive-command-row").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const command = await api(`/api/executive/commands/${encodeURIComponent(button.dataset.commandId)}`);
+      if (command.ok) renderExecutiveCommand(command.command);
+    });
+  });
+}
+
+function renderExecutiveCommand(command) {
+  if (!command) {
+    $("executiveCurrent").innerHTML = `<p class="muted">No executive command loaded.</p>`;
+    return;
+  }
+  state.currentExecutiveCommand = command;
+  const missionId = command.mission_id || command.mission?.id || "Not Connected";
+  $("executiveCurrent").innerHTML = `
+    <div class="metric"><span>ID</span><strong>${escapeHtml(command.id)}</strong></div>
+    <div class="metric"><span>Status</span><strong>${escapeHtml(command.status)}</strong></div>
+    <div class="metric"><span>Mission</span><strong>${escapeHtml(missionId)}</strong></div>
+    <div class="metric"><span>Approval Needed</span><strong>${command.approvals_required ? "Yes" : "No"}</strong></div>
+    <div class="metric"><span>Memory Path</span><strong>${escapeHtml(command.memory_path || "Not saved")}</strong></div>
+    <p class="muted">${escapeHtml(command.report || command.user_goal || "")}</p>
+    <div class="ceo-loop compact-loop">
+      ${(command.loop || []).map((item, index) => `
+        <div class="loop-step">
+          <span>${index + 1}</span>
+          <strong>${escapeHtml(item.stage || "step")}</strong>
+          <small>${escapeHtml(item.status || "")}</small>
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
 
 async function loadSystemHealth() {
@@ -629,6 +706,27 @@ $("missionForm").addEventListener("submit", async (event) => {
   renderMission(data.mission);
   $("missionGoal").value = "";
   await loadMissions();
+});
+
+$("executiveForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const userGoal = $("executiveGoal").value.trim();
+  if (!userGoal) {
+    toast("Add an executive outcome first.");
+    return;
+  }
+  $("executiveCurrent").innerHTML = `<p class="muted">Executive Command Center is running the CEO loop...</p>`;
+  const data = await api("/api/executive/commands", {
+    method: "POST",
+    body: JSON.stringify({ user_goal: userGoal }),
+  });
+  if (!data.ok) {
+    $("executiveCurrent").innerHTML = `<p class="muted">Error: ${escapeHtml(data.message || "Executive command failed.")}</p>`;
+    return;
+  }
+  renderExecutiveCommand(data.command);
+  $("executiveGoal").value = "";
+  await Promise.allSettled([loadExecutiveDashboard(), loadMissions()]);
 });
 
 $("prompt").addEventListener("input", (event) => {

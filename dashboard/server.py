@@ -27,8 +27,19 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from fusiondesk.core import ExecutionEngine, MissionRuntime, SeatAssignmentEngine
-from fusiondesk.core.execution import model_registry_for_api, model_status
+from fusiondesk.core import ExecutiveCommandCenter, ExecutionEngine, MissionRuntime, SeatAssignmentEngine
+from fusiondesk.core.execution import (
+    OpenRouterConnector,
+    estimate_message_tokens,
+    estimate_tokens,
+    mark_model_attempt,
+    mark_model_fail,
+    mark_model_success,
+    model_registry_for_api,
+    model_status,
+    record_model_result,
+    reset_model_status,
+)
 
 STATIC = ROOT / "dashboard" / "static"
 LOG_DIR = ROOT / "dashboard" / "logs"
@@ -176,6 +187,7 @@ class SessionStore:
 
 SESSION_STORE = SessionStore(SESSION_STORE_PATH)
 MISSION_RUNTIME = MissionRuntime.load()
+EXECUTIVE_COMMAND_CENTER = ExecutiveCommandCenter(mission_runtime=MISSION_RUNTIME)
 TELEGRAM_SERVICE = None
 
 
@@ -613,6 +625,14 @@ def mission_response(payload: dict, runtime: MissionRuntime | None = None) -> di
         return {"ok": False, "message": "user_goal is required."}
     mission = (runtime or MISSION_RUNTIME).run_mission(user_goal)
     return {"ok": True, "mission": mission}
+
+
+def executive_command_response(payload: dict, command_center: ExecutiveCommandCenter | None = None) -> dict:
+    user_goal = str(payload.get("user_goal") or payload.get("goal") or payload.get("command") or "").strip()
+    if not user_goal:
+        return {"ok": False, "message": "user_goal is required."}
+    command = (command_center or EXECUTIVE_COMMAND_CENTER).run_command(user_goal)
+    return {"ok": True, "command": command}
 
 
 def clean_chat_text(text: str) -> str:
@@ -1165,6 +1185,71 @@ def status() -> dict:
     }
 
 
+def model_generate_response(payload: dict) -> dict:
+    model = str(payload.get("model") or "").strip()
+    prompt = str(payload.get("prompt") or "").strip()
+    if not model or not prompt:
+        return {
+            "ok": False,
+            "model": model,
+            "text": "",
+            "error": "Both model and prompt are required.",
+            "raw": None,
+            "status": "bad_request",
+        }
+
+    started = time.perf_counter()
+    messages = [{"role": "user", "content": prompt}]
+    input_tokens = estimate_message_tokens(messages)
+    reset_model_status()
+    mark_model_attempt(model)
+    try:
+        text = OpenRouterConnector().generate(
+            model=model,
+            messages=messages,
+            timeout=60,
+        )
+        latency_ms = round((time.perf_counter() - started) * 1000)
+        output_tokens = estimate_tokens(text)
+        record_model_result(
+            model=model,
+            ok=True,
+            latency_ms=latency_ms,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+        mark_model_success(model)
+        return {
+            "ok": True,
+            "model": model,
+            "text": text,
+            "error": "",
+            "raw": {"text": text},
+            "status": "ok",
+            "latency_ms": latency_ms,
+        }
+    except Exception as exc:
+        latency_ms = round((time.perf_counter() - started) * 1000)
+        record_model_result(
+            model=model,
+            ok=False,
+            latency_ms=latency_ms,
+            input_tokens=input_tokens,
+            output_tokens=0,
+            error=str(exc),
+        )
+        mark_model_fail(model, exc)
+        return {
+            "ok": False,
+            "model": model,
+            "text": "",
+            "error": str(exc),
+            "raw": str(exc),
+            "status": getattr(exc, "code", None) or "error",
+            "latency_ms": latency_ms,
+        }
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args) -> None:
         (LOG_DIR / "dashboard.log").open("a").write(f"{time.strftime('%H:%M:%S')} {fmt % args}\n")
@@ -1295,6 +1380,20 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/system/health":
             self.send_json(system_health())
             return
+        if path == "/api/executive":
+            self.send_json(EXECUTIVE_COMMAND_CENTER.dashboard_snapshot(system_health()))
+            return
+        if path == "/api/executive/commands":
+            self.send_json({"ok": True, "commands": EXECUTIVE_COMMAND_CENTER.list_commands()})
+            return
+        if path.startswith("/api/executive/commands/"):
+            command_id = path.rsplit("/", 1)[-1]
+            command = EXECUTIVE_COMMAND_CENTER.get_command(command_id)
+            if command:
+                self.send_json({"ok": True, "command": command})
+            else:
+                self.send_json({"ok": False, "message": "Executive command not found."}, 404)
+            return
         if path == "/api/models/status":
             self.send_json(model_status())
             return
@@ -1417,9 +1516,19 @@ class Handler(BaseHTTPRequestHandler):
             result = seat_assignment(payload)
             self.send_json(result, 200 if result.get("ok") else 400)
             return
+        if path == "/api/model/generate":
+            trace("router.model.generate", route_selected="openrouter_model_generate", skipped_local_model=True)
+            result = model_generate_response(payload)
+            self.send_json(result, 200 if result.get("ok") else 502)
+            return
         if path == "/api/missions":
             trace("router.missions.create", route_selected="mission_runtime", skipped_local_model=True)
             result = mission_response(payload)
+            self.send_json(result, 200 if result.get("ok") else 400)
+            return
+        if path == "/api/executive/commands":
+            trace("router.executive.command", route_selected="executive_command_center", skipped_local_model=True)
+            result = executive_command_response(payload)
             self.send_json(result, 200 if result.get("ok") else 400)
             return
         if path == "/api/command":

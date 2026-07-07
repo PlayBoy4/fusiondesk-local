@@ -22,6 +22,7 @@ DEFAULT_MODEL_PRIORITY = [
     "google/gemini-2.0-flash-001",
     "deepseek/deepseek-chat",
     "anthropic/claude-3.5-sonnet:beta",
+    "anthropic/claude-fable-5",
 ]
 
 

@@ -427,6 +427,68 @@ textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(66,245,25
   position: relative;
   z-index: 1;
 }
+.executive-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.executive-card {
+  border: 1px solid rgba(115,239,255,0.24);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(0, 8, 18, 0.62);
+}
+.executive-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.executive-card strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+.ceo-loop {
+  display: grid;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+.compact-loop {
+  margin-top: 14px;
+}
+.loop-step {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(115,239,255,0.24);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(0, 8, 18, 0.62);
+}
+.loop-step span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #00111f;
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  font-weight: 900;
+}
+.loop-step strong {
+  overflow-wrap: anywhere;
+}
+.loop-step small {
+  grid-column: 2;
+  color: var(--muted);
+}
 .health-card, .health-row, .model-row {
   border: 1px solid rgba(115,239,255,0.24);
   border-radius: 8px;

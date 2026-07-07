@@ -127,6 +127,77 @@
         "Useful for TradeMaster, FusionDesk, B2B, AI Media, and development memory.",
         "Must back up vault before enabling because it rewrites notes."
       ]
+    },
+    {
+      "name": "alibaba/page-agent",
+      "type": "repo_reference",
+      "category": "Browser Automation",
+      "purpose": "Natural-language control layer for web pages using a client-side JavaScript agent.",
+      "license": "MIT",
+      "repo": "https://github.com/alibaba/page-agent",
+      "integration_status": "reference_only",
+      "install_status": "not_installed",
+      "status": "reference_only",
+      "stack": [
+        "JavaScript",
+        "NPM",
+        "OpenAI-compatible LLM endpoint",
+        "Optional Chrome extension",
+        "Optional MCP server"
+      ],
+      "use_cases": [
+        "Website Factory UI copilot",
+        "Daycare platform form assistant",
+        "CRM/admin dashboard control",
+        "Phone-driven website commands",
+        "Accessibility layer",
+        "FusionDesk UI testing for owned pages"
+      ],
+      "notes": [
+        "Only use on websites/apps we own or have permission to control.",
+        "Do not use for scraping or automating third-party sites without permission.",
+        "Production setup should use NPM and a controlled model endpoint, not the public demo CDN.",
+        "Potential fit for FusionDesk Browser Automation connector and Website Factory module.",
+        "Reference for the page_agent_ui_control skill."
+      ]
+    },
+    {
+      "name": "ogulcancevik/herdr",
+      "type": "repo_reference",
+      "category": "Development / Agent Orchestration",
+      "purpose": "Agent multiplexer for running and monitoring multiple AI coding agents from one terminal.",
+      "repo": "https://github.com/ogulcancevik/herdr",
+      "site": "https://herdr.dev",
+      "docs": "https://herdr.dev/docs/",
+      "quick_start": "https://herdr.dev/docs/quick-start/",
+      "license": "AGPL-3.0",
+      "integration_status": "reference_only",
+      "install_status": "not_installed",
+      "status": "reference_only",
+      "stack": [
+        "Rust",
+        "Terminal UI",
+        "Background server",
+        "Agent panes",
+        "Local socket API",
+        "SSH-friendly workflow"
+      ],
+      "use_cases": [
+        "Claude Code and Codex process orchestration",
+        "Multi-agent coding sessions",
+        "Phone/SSH reattach workflow",
+        "Executive Command Center worker fleet",
+        "Repo Intelligence task delegation",
+        "Long-running development missions",
+        "Agent pane spawning through local socket API"
+      ],
+      "notes": [
+        "Do not install yet.",
+        "Useful as a possible process layer below FusionDesk, not a replacement for FusionDesk orchestration.",
+        "FusionDesk should remain the executive brain; HERD can become an agent runner service.",
+        "Can help keep agents running on a server or Mac while reconnecting from phone via SSH.",
+        "AGPL-3.0 license must be reviewed before commercial integration."
+      ]
     }
   ]
 }

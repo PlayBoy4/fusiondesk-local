@@ -2,35 +2,36 @@
   "version": "2026-07-03",
   "policy": "Only status=active models may be executed. Internal seat labels must resolve through this registry before provider calls.",
   "fallback_chain": [
-    "anthropic/claude-sonnet-4",
-    "openai/gpt-4o",
-    "google/gemini-2.5-flash",
-    "openai/gpt-4o-mini"
+    "openai/gpt-4o-mini",
+    "google/gemini-2.0-flash-001",
+    "deepseek/deepseek-chat",
+    "anthropic/claude-3.5-sonnet:beta",
+    "anthropic/claude-fable-5"
   ],
   "models": [
     {
       "label": "Sonnet",
       "seat": "claude-sonnet",
-      "provider_model": "anthropic/claude-sonnet-4",
+      "provider_model": "anthropic/claude-3.5-sonnet:beta",
       "status": "active",
       "connector": "openrouter",
-      "aliases": ["sonnet", "claude-sonnet", "anthropic/claude-sonnet-4"]
+      "aliases": ["sonnet", "claude-sonnet", "anthropic/claude-3.5-sonnet:beta"]
     },
     {
       "label": "ChatGPT",
       "seat": "gpt-4.1",
       "provider_model": "openai/gpt-4o",
-      "status": "active",
+      "status": "needs_health_check",
       "connector": "openrouter",
       "aliases": ["chatgpt", "gpt-4.1", "gpt-4o", "openai/gpt-4o"]
     },
     {
       "label": "Gemini Flash",
       "seat": "gemini-2.5-flash",
-      "provider_model": "google/gemini-2.5-flash",
+      "provider_model": "google/gemini-2.0-flash-001",
       "status": "active",
       "connector": "openrouter",
-      "aliases": ["gemini", "gemini-2.5-flash", "google/gemini-2.5-flash"]
+      "aliases": ["gemini", "gemini-2.5-flash", "gemini-2.0-flash", "google/gemini-2.0-flash-001"]
     },
     {
       "label": "ChatGPT Mini",
@@ -60,7 +61,7 @@
       "label": "Opus",
       "seat": "claude-opus",
       "provider_model": "anthropic/claude-opus-4.7",
-      "status": "active",
+      "status": "needs_health_check",
       "connector": "openrouter",
       "aliases": ["opus", "claude-opus", "opus-4.7", "anthropic/claude-opus-4.7"]
     },
@@ -82,23 +83,13 @@
     },
    
    
-   {
-  "label": "GLM 5.2",
-  "seat": "glm-5.2",
-  "provider_model": "z-ai/glm-5.2",
-  "status": "active",
-  "connector": "openrouter",
-  "aliases": [
-    "glm",
-    "glm-5.2",
-    "z-ai/glm-5.2"
-  ]
-}
-      
-      
-      
-      
-      
-      
+    {
+      "label": "GLM 5.2",
+      "seat": "glm-5.2",
+      "provider_model": "z-ai/glm-5.2",
+      "status": "needs_health_check",
+      "connector": "openrouter",
+      "aliases": ["glm", "glm-5.2", "z-ai/glm-5.2"]
+    }
   ]
 }

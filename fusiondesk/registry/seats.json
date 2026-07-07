@@ -5,17 +5,17 @@
   },
 
   "researcher": {
-    "model_key": "gemini-2.5-flash",
+    "model_key": "gemini-2.0-flash",
     "purpose": "research, long context, summarization"
   },
 
   "builder": {
-    "model_key": "gpt-4o",
+    "model_key": "gpt-4.1-mini",
     "purpose": "implementation, coding, UI"
   },
 
   "planner": {
-    "model_key": "claude-sonnet-4",
+    "model_key": "claude-sonnet",
     "purpose": "architecture, workflows, orchestration"
   },
 
