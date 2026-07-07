@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -17,10 +18,10 @@ MODEL_REGISTRY_PATH = Path(__file__).resolve().parents[1] / "registry" / "models
 
 
 DEFAULT_MODEL_PRIORITY = [
-    "anthropic/claude-sonnet-4",
-    "openai/gpt-4o",
-    "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
+    "google/gemini-2.0-flash-001",
+    "deepseek/deepseek-chat",
+    "anthropic/claude-3.5-sonnet:beta",
 ]
 
 
@@ -118,7 +119,9 @@ MODEL_STATUS = {
     "failed_models": [],
     "fallback_chain": [],
     "skipped_models": [],
+    "last_execution": None,
 }
+MODEL_METRICS: dict[str, dict[str, Any]] = {}
 
 
 class ModelInvocationError(RuntimeError):
@@ -134,6 +137,8 @@ def model_status() -> dict[str, Any]:
         "failed_models": list(MODEL_STATUS["failed_models"]),
         "fallback_chain": list(MODEL_STATUS["fallback_chain"]),
         "skipped_models": list(MODEL_STATUS["skipped_models"]),
+        "last_execution": MODEL_STATUS["last_execution"],
+        "models": model_orchestrator_metrics(),
     }
 
 
@@ -142,6 +147,7 @@ def reset_model_status() -> None:
     MODEL_STATUS["failed_models"] = []
     MODEL_STATUS["fallback_chain"] = []
     MODEL_STATUS["skipped_models"] = []
+    MODEL_STATUS["last_execution"] = None
 
 
 def mark_model_attempt(model: str) -> None:
@@ -169,6 +175,132 @@ def mark_model_skip(model: str) -> None:
     print(f"[ModelSkip] {model}", flush=True)
     if model not in MODEL_STATUS["skipped_models"]:
         MODEL_STATUS["skipped_models"].append(model)
+
+
+def estimate_tokens(text: str) -> int:
+    return max(1, round(len(str(text)) / 4)) if text else 0
+
+
+def estimate_message_tokens(messages: list[dict[str, str]]) -> int:
+    return sum(estimate_tokens(message.get("content", "")) for message in messages)
+
+
+def record_model_result(
+    *,
+    model: str,
+    ok: bool,
+    latency_ms: int,
+    input_tokens: int,
+    output_tokens: int,
+    error: str = "",
+) -> None:
+    row = MODEL_METRICS.setdefault(
+        model,
+        {
+            "success_count": 0,
+            "failure_count": 0,
+            "latency_ms": None,
+            "token_usage": {"input": 0, "output": 0, "total": 0},
+            "last_error": "",
+            "last_status": "Not Run",
+            "last_seen_at": None,
+        },
+    )
+    if ok:
+        row["success_count"] += 1
+        row["last_error"] = ""
+        row["last_status"] = "Success"
+    else:
+        row["failure_count"] += 1
+        row["last_error"] = error
+        row["last_status"] = "Failure"
+    row["latency_ms"] = latency_ms
+    row["token_usage"] = {
+        "input": row["token_usage"].get("input", 0) + input_tokens,
+        "output": row["token_usage"].get("output", 0) + output_tokens,
+        "total": row["token_usage"].get("total", 0) + input_tokens + output_tokens,
+    }
+    row["last_seen_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    MODEL_STATUS["last_execution"] = {
+        "model": model,
+        "ok": ok,
+        "latency_ms": latency_ms,
+        "token_usage": {"input": input_tokens, "output": output_tokens, "total": input_tokens + output_tokens},
+        "error": error,
+        "at": row["last_seen_at"],
+    }
+
+
+def model_orchestrator_metrics() -> list[dict[str, Any]]:
+    fallback = active_fallback_chain()
+    rows = []
+    seen = set()
+    for item in model_registry_entries():
+        provider_model = str(item.get("provider_model") or item.get("seat") or item.get("label") or "")
+        if not provider_model:
+            continue
+        seen.add(provider_model)
+        metrics = MODEL_METRICS.get(provider_model, {})
+        successes = int(metrics.get("success_count") or 0)
+        failures = int(metrics.get("failure_count") or 0)
+        total = successes + failures
+        rows.append(
+            {
+                "provider": item.get("connector") or "Not Connected",
+                "label": item.get("label") or provider_model,
+                "seat": item.get("seat"),
+                "model_id": provider_model,
+                "health": _model_health_label(item, metrics),
+                "latency_ms": metrics.get("latency_ms"),
+                "cost_estimate": "Not Connected",
+                "token_usage": metrics.get("token_usage") or {"input": 0, "output": 0, "total": 0},
+                "success_count": successes,
+                "failure_count": failures,
+                "success_rate": round(successes / total, 3) if total else None,
+                "last_error": metrics.get("last_error") or "",
+                "fallback_priority": fallback.index(provider_model) + 1 if provider_model in fallback else None,
+                "registry_status": item.get("status") or "unknown",
+                "connector": item.get("connector") or "Not Connected",
+                "last_seen_at": metrics.get("last_seen_at"),
+            }
+        )
+    for provider_model, metrics in MODEL_METRICS.items():
+        if provider_model in seen:
+            continue
+        successes = int(metrics.get("success_count") or 0)
+        failures = int(metrics.get("failure_count") or 0)
+        total = successes + failures
+        rows.append(
+            {
+                "provider": "runtime",
+                "label": provider_model,
+                "seat": provider_model,
+                "model_id": provider_model,
+                "health": metrics.get("last_status") or "Not Run",
+                "latency_ms": metrics.get("latency_ms"),
+                "cost_estimate": "Not Connected",
+                "token_usage": metrics.get("token_usage") or {"input": 0, "output": 0, "total": 0},
+                "success_count": successes,
+                "failure_count": failures,
+                "success_rate": round(successes / total, 3) if total else None,
+                "last_error": metrics.get("last_error") or "",
+                "fallback_priority": fallback.index(provider_model) + 1 if provider_model in fallback else None,
+                "registry_status": "runtime_only",
+                "connector": "runtime",
+                "last_seen_at": metrics.get("last_seen_at"),
+            }
+        )
+    return rows
+
+
+def _model_health_label(item: dict[str, Any], metrics: dict[str, Any]) -> str:
+    if metrics.get("last_status") == "Success":
+        return "Healthy"
+    if metrics.get("last_status") == "Failure":
+        return "Error"
+    if item.get("status") != "active":
+        return "Not Connected"
+    return "Not Run"
 
 
 def resolve_openrouter_model(model: str) -> str:
@@ -315,11 +447,13 @@ class ExecutionEngine:
             }
 
         messages = self._messages(task=task, plan=plan, memory_context=memory_context)
+        input_tokens = estimate_message_tokens(messages)
         reset_model_status()
         attempts = []
         last_error = ""
         for model in self._candidate_models(plan):
             attempt = {"connector": "openrouter", "model": model}
+            started = time.perf_counter()
             try:
                 mark_model_attempt(model)
                 answer = self.connectors["openrouter"].generate(
@@ -327,8 +461,19 @@ class ExecutionEngine:
                     messages=messages,
                     timeout=self.timeout_seconds,
                 )
+                latency_ms = round((time.perf_counter() - started) * 1000)
+                output_tokens = estimate_tokens(answer)
                 attempt["ok"] = True
+                attempt["latency_ms"] = latency_ms
+                attempt["token_usage"] = {"input": input_tokens, "output": output_tokens, "total": input_tokens + output_tokens}
                 attempts.append(attempt)
+                record_model_result(
+                    model=model,
+                    ok=True,
+                    latency_ms=latency_ms,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                )
                 mark_model_success(model)
                 return {
                     "ok": True,
@@ -344,9 +489,20 @@ class ExecutionEngine:
                 }
             except Exception as exc:
                 last_error = str(exc)
+                latency_ms = round((time.perf_counter() - started) * 1000)
                 attempt["ok"] = False
                 attempt["error"] = last_error
+                attempt["latency_ms"] = latency_ms
+                attempt["token_usage"] = {"input": input_tokens, "output": 0, "total": input_tokens}
                 attempts.append(attempt)
+                record_model_result(
+                    model=model,
+                    ok=False,
+                    latency_ms=latency_ms,
+                    input_tokens=input_tokens,
+                    output_tokens=0,
+                    error=last_error,
+                )
                 mark_model_fail(model, exc)
                 next_model = self._next_model(model, plan)
                 if next_model:
@@ -376,12 +532,14 @@ class ExecutionEngine:
             return
 
         messages = self._messages(task=task, plan=plan, memory_context=memory_context)
+        input_tokens = estimate_message_tokens(messages)
         reset_model_status()
         attempts = []
         last_error = ""
         for model in self._candidate_models(plan):
             attempt = {"connector": "openrouter", "model": model}
             answer_parts = []
+            started = time.perf_counter()
             try:
                 mark_model_attempt(model)
                 yield {"type": "start", "connector": "openrouter", "model": model}
@@ -395,8 +553,19 @@ class ExecutionEngine:
                 answer = "".join(answer_parts).strip()
                 if not answer:
                     raise RuntimeError("OpenRouter returned an empty response")
+                latency_ms = round((time.perf_counter() - started) * 1000)
+                output_tokens = estimate_tokens(answer)
                 attempt["ok"] = True
+                attempt["latency_ms"] = latency_ms
+                attempt["token_usage"] = {"input": input_tokens, "output": output_tokens, "total": input_tokens + output_tokens}
                 attempts.append(attempt)
+                record_model_result(
+                    model=model,
+                    ok=True,
+                    latency_ms=latency_ms,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                )
                 mark_model_success(model)
                 yield {
                     "type": "done",
@@ -411,9 +580,20 @@ class ExecutionEngine:
                 return
             except Exception as exc:
                 last_error = str(exc)
+                latency_ms = round((time.perf_counter() - started) * 1000)
                 attempt["ok"] = False
                 attempt["error"] = last_error
+                attempt["latency_ms"] = latency_ms
+                attempt["token_usage"] = {"input": input_tokens, "output": 0, "total": input_tokens}
                 attempts.append(attempt)
+                record_model_result(
+                    model=model,
+                    ok=False,
+                    latency_ms=latency_ms,
+                    input_tokens=input_tokens,
+                    output_tokens=0,
+                    error=last_error,
+                )
                 mark_model_fail(model, exc)
                 next_model = self._next_model(model, plan)
                 if next_model:

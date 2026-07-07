@@ -23,6 +23,7 @@
           <button class="nav" data-view="trademaster">TradeMaster</button>
           <button class="nav" data-view="capabilities">Map</button>
           <button class="nav" data-view="missions">Missions</button>
+          <button class="nav" data-view="system">System</button>
           <button class="nav" data-view="stack">Stack</button>
           <button class="nav" data-view="seats">Seats</button>
           <button class="nav" data-view="brain">Brain</button>
@@ -188,6 +189,30 @@
             <article class="panel wide-panel">
               <h2>Saved Missions</h2>
               <div id="missionList" class="mission-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="system" class="view">
+          <div class="grid">
+            <article class="panel">
+              <p class="eyebrow">Runtime truth panel</p>
+              <h2>System Health</h2>
+              <div id="systemHealthSummary" class="health-grid"></div>
+            </article>
+            <article class="panel">
+              <h2>Last Execution</h2>
+              <div id="lastExecutionResult" class="health-detail">
+                <p class="muted">No execution result loaded.</p>
+              </div>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Connector Health</h2>
+              <div id="connectorHealth" class="health-table"></div>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Model Orchestrator</h2>
+              <div id="modelOrchestrator" class="health-table"></div>
             </article>
           </div>
         </section>

@@ -7,6 +7,7 @@ from dashboard.server import (
     extract_user_facts,
     normalize_session_id,
     route_remote_command,
+    system_health,
     tool_state_for_plan,
 )
 
@@ -122,3 +123,24 @@ def test_frontend_surfaces_context_recap_and_trademaster_tab():
     assert "/api/capabilities" in app
     assert 'data-view="trademaster"' in html
     assert 'data-view="capabilities"' in html
+
+
+def test_system_health_reports_runtime_shape():
+    health = system_health()
+
+    assert health["ok"] is True
+    assert "router_status" in health
+    assert "execution_engine_status" in health
+    assert "seat_assignment_status" in health
+    assert "streaming_status" in health
+    assert "model_health" in health
+    assert "connector_health" in health
+    assert "memory_health" in health
+    assert "last_execution_result" in health
+    assert "failover_chain" in health
+    assert "latency_ms" in health
+    assert "cost" in health
+    assert "success_rate" in health
+    assert "model_orchestrator" in health
+    assert all("health" in row for row in health["connector_health"])
+    assert all("model_id" in row and "success_count" in row and "fallback_priority" in row for row in health["model_orchestrator"])

@@ -421,6 +421,78 @@ textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(66,245,25
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
+.health-grid, .health-table, .health-detail {
+  display: grid;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.health-card, .health-row, .model-row {
+  border: 1px solid rgba(115,239,255,0.24);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(0, 8, 18, 0.62);
+}
+.health-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.health-card span, .health-row span, .model-row span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.health-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+.health-row strong, .model-row strong {
+  display: block;
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.health-row small, .model-row small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.model-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(120px, 0.8fr) repeat(6, minmax(86px, 0.6fr)) minmax(180px, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.last-error strong {
+  color: var(--muted);
+  max-height: 72px;
+  overflow: auto;
+}
+.status-badge {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.status-badge.good {
+  color: #02140d;
+  background: var(--green);
+}
+.status-badge.warn {
+  color: #1d1300;
+  background: var(--amber);
+}
+.status-badge.bad {
+  color: white;
+  background: var(--danger);
+}
 code {
   display: block;
   padding: 14px;
@@ -509,7 +581,7 @@ code {
   .shell { grid-template-columns: 1fr; }
   .sidebar { position: static; border-right: 0; border-bottom: 1px solid var(--line); }
   nav { grid-template-columns: repeat(6, 1fr); }
-  .topbar, .chat-layout, .grid, .brain-layout, .flint-hero, .seat-layout, .mission-layout, .mission-task { grid-template-columns: 1fr; }
+  .topbar, .chat-layout, .grid, .brain-layout, .flint-hero, .seat-layout, .mission-layout, .mission-task, .health-row, .model-row { grid-template-columns: 1fr; }
   .topbar { align-items: start; }
   .reactor { width: 92px; height: 92px; }
   .feature-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }

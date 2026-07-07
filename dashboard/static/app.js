@@ -149,7 +149,7 @@ async function refresh() {
     $("flintStatus").textContent = data.flint.installed ? "Installed" : "Ready to add";
     $("flintInstall").textContent = data.flint.installCommand;
   }
-  await Promise.allSettled([loadTradeMaster(), loadCapabilities(), loadMissions()]);
+  await Promise.allSettled([loadTradeMaster(), loadCapabilities(), loadMissions(), loadSystemHealth()]);
 }
 
 function introMessage() {
@@ -258,6 +258,91 @@ function renderMission(mission) {
       <p>${escapeHtml(task.output || "No output yet.")}</p>
     </div>
   `).join("") || `<p class="muted">No tasks found for this mission.</p>`;
+}
+
+async function loadSystemHealth() {
+  if (!$("systemHealthSummary")) return;
+  const data = await api("/api/system/health");
+  if (!data.ok) {
+    $("systemHealthSummary").innerHTML = `<p class="muted">${escapeHtml(data.message || "System health unavailable.")}</p>`;
+    return;
+  }
+  renderSystemHealth(data);
+}
+
+function renderSystemHealth(data) {
+  const summary = [
+    ["Router", data.router_status],
+    ["Execution Engine", data.execution_engine_status],
+    ["Seat Assignment", data.seat_assignment_status],
+    ["Streaming", data.streaming_status],
+    ["Memory", data.memory_health?.session_store],
+    ["Latency", formatLatency(data.latency_ms)],
+    ["Cost", data.cost || "Not Connected"],
+    ["Success Rate", data.success_rate == null ? "Not Connected" : `${Math.round(data.success_rate * 100)}%`],
+    ["Failover Chain", (data.failover_chain || []).join(" → ") || "Not Connected"],
+  ];
+  $("systemHealthSummary").innerHTML = summary.map(([label, value]) => `
+    <div class="health-card">
+      <span>${escapeHtml(label)}</span>
+      ${statusBadge(value)}
+    </div>
+  `).join("");
+
+  const last = data.last_execution_result || {};
+  const execution = last.execution || last;
+  $("lastExecutionResult").innerHTML = `
+    <div class="metric"><span>Status</span><strong>${escapeHtml(last.status || (last.ok === true ? "Success" : last.ok === false ? "Failure" : "Not Connected"))}</strong></div>
+    <div class="metric"><span>Model</span><strong>${escapeHtml(execution.model || last.model || "Not Connected")}</strong></div>
+    <div class="metric"><span>Latency</span><strong>${escapeHtml(formatLatency(last.latency_ms || execution.latency_ms))}</strong></div>
+    <div class="metric"><span>Error</span><strong>${escapeHtml(last.error || execution.error || "None recorded")}</strong></div>
+  `;
+
+  $("connectorHealth").innerHTML = (data.connector_health || []).map((connector) => `
+    <div class="health-row">
+      <div>
+        <span>${escapeHtml(connector.category || "connector")}</span>
+        <strong>${escapeHtml(connector.name || connector.id)}</strong>
+        <small>${escapeHtml(connector.detail || "")}</small>
+      </div>
+      ${statusBadge(connector.health)}
+    </div>
+  `).join("") || `<p class="muted">No connectors registered.</p>`;
+
+  $("modelOrchestrator").innerHTML = (data.model_orchestrator || []).map((model) => `
+    <div class="model-row">
+      <div>
+        <span>${escapeHtml(model.provider || model.connector || "provider")}</span>
+        <strong>${escapeHtml(model.model_id)}</strong>
+        <small>${escapeHtml(model.label || model.seat || "")}</small>
+      </div>
+      <div>${statusBadge(model.health)}<small>${escapeHtml(model.registry_status || "")}</small></div>
+      <div><span>Latency</span><strong>${escapeHtml(formatLatency(model.latency_ms))}</strong></div>
+      <div><span>Cost</span><strong>${escapeHtml(model.cost_estimate || "Not Connected")}</strong></div>
+      <div><span>Tokens</span><strong>${escapeHtml(model.token_usage?.total || 0)}</strong></div>
+      <div><span>Success</span><strong>${escapeHtml(model.success_count || 0)}</strong></div>
+      <div><span>Failure</span><strong>${escapeHtml(model.failure_count || 0)}</strong></div>
+      <div><span>Priority</span><strong>${escapeHtml(model.fallback_priority || "Not Connected")}</strong></div>
+      <div class="last-error"><span>Last Error</span><strong>${escapeHtml(model.last_error || "None recorded")}</strong></div>
+    </div>
+  `).join("") || `<p class="muted">No model metrics registered.</p>`;
+}
+
+function formatLatency(value) {
+  return value == null ? "Not Connected" : `${value} ms`;
+}
+
+function statusBadge(value) {
+  const text = String(value || "Not Connected");
+  const status = text.toLowerCase();
+  const cls = status.includes("not connected") || status.includes("error") || status.includes("failure")
+    ? "bad"
+    : status.includes("ready") || status === "connected" || status.includes("healthy") || status.includes("success")
+    ? "good"
+    : status.includes("configured") || status.includes("not run")
+      ? "warn"
+      : "bad";
+  return `<strong class="status-badge ${cls}">${escapeHtml(text)}</strong>`;
 }
 
 async function action(path, successPrefix) {

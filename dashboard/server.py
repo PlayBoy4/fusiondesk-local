@@ -38,6 +38,7 @@ RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 TRACE_LOG = LOG_DIR / "fusiondesk-debug.log"
 SESSION_STORE_PATH = RUNTIME_DIR / "sessions.json"
 CAPABILITY_MATRIX_PATH = ROOT / "fusiondesk" / "capabilities" / "matrix.json"
+CONNECTOR_REGISTRY_PATH = ROOT / "fusiondesk" / "connectors" / "registry.json"
 TRADEMASTER_STATS = ROOT / "flint" / "memory" / "trading" / "stats.md"
 TRADEMASTER_LESSONS = ROOT / "flint" / "memory" / "trading" / "lessons" / "premium_reload_lessons.md"
 TRADEMASTER_REVIEWS = ROOT / "flint" / "memory" / "trading" / "reviews"
@@ -461,6 +462,112 @@ def capability_matrix() -> dict:
     except Exception as exc:
         return {"ok": False, "message": f"Capability matrix could not be read: {exc}", "capabilities": []}
     return {"ok": True, **data}
+
+
+def read_json_file(path: Path, fallback: dict | None = None) -> dict:
+    try:
+        data = json.loads(path.read_text())
+        return data if isinstance(data, dict) else (fallback or {})
+    except Exception:
+        return fallback or {}
+
+
+def connector_health_rows() -> list[dict]:
+    registry = read_json_file(CONNECTOR_REGISTRY_PATH, {"connectors": []})
+    rows = []
+    for connector in registry.get("connectors", []):
+        connector_id = connector.get("id", "")
+        required = connector.get("required_config") or []
+        configured = all(bool(os.environ.get(key)) for key in required)
+        if connector_id == "local_filesystem":
+            health_label = "Connected" if ROOT.exists() else "Error"
+            detail = str(ROOT)
+        elif connector_id == "openrouter":
+            health_label = "Configured" if configured else "Not Connected"
+            detail = "OPENROUTER_API_KEY present" if configured else "OPENROUTER_API_KEY missing"
+        elif not required:
+            health_label = "Not Connected" if connector.get("status") == "planned" else "Configured"
+            detail = "No runtime adapter wired" if connector.get("status") == "planned" else "No required config"
+        else:
+            health_label = "Configured" if configured else "Not Connected"
+            missing = [key for key in required if not os.environ.get(key)]
+            detail = "All required config present" if configured else f"Missing: {', '.join(missing)}"
+        rows.append(
+            {
+                "id": connector_id,
+                "name": connector.get("name") or connector_id,
+                "category": connector.get("category"),
+                "registry_status": connector.get("status"),
+                "health": health_label,
+                "detail": detail,
+                "required_config": required,
+                "capabilities": connector.get("capabilities") or [],
+            }
+        )
+    return rows
+
+
+def last_execution_from_sessions() -> dict:
+    data = SESSION_STORE._read_unlocked()
+    latest: dict | None = None
+    for session in data.get("sessions", {}).values():
+        for message in session.get("messages", []):
+            metadata = message.get("metadata") or {}
+            execution = metadata.get("execution")
+            if not execution:
+                continue
+            candidate = {
+                "message_id": message.get("id"),
+                "session_id": session.get("id"),
+                "status": message.get("status"),
+                "updated_at": message.get("updated_at"),
+                "execution": execution,
+            }
+            if latest is None or float(candidate.get("updated_at") or 0) > float(latest.get("updated_at") or 0):
+                latest = candidate
+    return latest or {"status": "Not Connected", "execution": None}
+
+
+def memory_health() -> dict:
+    mission_dir = ROOT / "flint" / "memory" / "missions"
+    return {
+        "session_store": "Connected" if SESSION_STORE_PATH.parent.exists() else "Not Connected",
+        "session_store_path": str(SESSION_STORE_PATH),
+        "mission_memory": "Connected" if mission_dir.exists() else "Not Connected",
+        "mission_memory_path": str(mission_dir),
+        "saved_missions": len(list(mission_dir.glob("*.json"))) if mission_dir.exists() else 0,
+        "flint": "Connected" if (ROOT / "flint" / "memory").exists() else "Not Connected",
+    }
+
+
+def system_health() -> dict:
+    models = model_status()
+    model_rows = models.get("models", [])
+    successes = sum(int(row.get("success_count") or 0) for row in model_rows)
+    failures = sum(int(row.get("failure_count") or 0) for row in model_rows)
+    total = successes + failures
+    last_execution = models.get("last_execution") or last_execution_from_sessions()
+    latency = None
+    if isinstance(last_execution, dict):
+        latency = last_execution.get("latency_ms") or (last_execution.get("execution") or {}).get("latency_ms")
+    return {
+        "ok": True,
+        "router_status": "Ready",
+        "execution_engine_status": "Configured" if os.environ.get("OPENROUTER_API_KEY") else "Not Connected",
+        "seat_assignment_status": "Ready",
+        "streaming_status": "Ready",
+        "model_health": models,
+        "connector_health": connector_health_rows(),
+        "memory_health": memory_health(),
+        "last_execution_result": last_execution,
+        "failover_chain": models.get("fallback_chain") or models.get("available_models") or [],
+        "latency_ms": latency,
+        "cost": "Not Connected",
+        "success_rate": round(successes / total, 3) if total else None,
+        "success_count": successes,
+        "failure_count": failures,
+        "model_orchestrator": model_rows,
+    }
 
 
 def trademaster_status() -> dict:
@@ -1184,6 +1291,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/status":
             self.send_json(status())
+            return
+        if path == "/api/system/health":
+            self.send_json(system_health())
             return
         if path == "/api/models/status":
             self.send_json(model_status())
