@@ -307,7 +307,7 @@ textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(66,245,25
 .check-row span::before { content: "✓"; font-size: 13px; }
 .check-row span.no { background: var(--danger); color: white; }
 .check-row span.no::before { content: "!"; }
-.seat-layout { display: grid; grid-template-columns: minmax(360px, 0.85fr) minmax(0, 1.15fr); gap: 18px; }
+.seat-layout, .mission-layout { display: grid; grid-template-columns: minmax(360px, 0.85fr) minmax(0, 1.15fr); gap: 18px; }
 .seat-form, .seat-summary { display: grid; gap: 14px; position: relative; z-index: 1; }
 .seat-form label { display: grid; gap: 7px; color: var(--muted); font-weight: 700; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -379,6 +379,47 @@ textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(66,245,25
   border-radius: 8px;
   padding: 12px;
   background: rgba(255,209,102,0.06);
+}
+.mission-current, .mission-list, .mission-tasks {
+  display: grid;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.mission-row, .mission-task {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(115,239,255,0.24);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(0, 8, 18, 0.62);
+}
+.mission-row span, .mission-task span {
+  display: block;
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.mission-row strong, .mission-task strong {
+  display: block;
+  margin: 5px 0;
+  overflow-wrap: anywhere;
+}
+.mission-row small, .mission-task small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.mission-task {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
+  gap: 14px;
+}
+.mission-task p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 code {
   display: block;
@@ -468,7 +509,7 @@ code {
   .shell { grid-template-columns: 1fr; }
   .sidebar { position: static; border-right: 0; border-bottom: 1px solid var(--line); }
   nav { grid-template-columns: repeat(6, 1fr); }
-  .topbar, .chat-layout, .grid, .brain-layout, .flint-hero, .seat-layout { grid-template-columns: 1fr; }
+  .topbar, .chat-layout, .grid, .brain-layout, .flint-hero, .seat-layout, .mission-layout, .mission-task { grid-template-columns: 1fr; }
   .topbar { align-items: start; }
   .reactor { width: 92px; height: 92px; }
   .feature-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }

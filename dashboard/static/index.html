@@ -22,6 +22,7 @@
           <button class="nav active" data-view="chat">Chat</button>
           <button class="nav" data-view="trademaster">TradeMaster</button>
           <button class="nav" data-view="capabilities">Map</button>
+          <button class="nav" data-view="missions">Missions</button>
           <button class="nav" data-view="stack">Stack</button>
           <button class="nav" data-view="seats">Seats</button>
           <button class="nav" data-view="brain">Brain</button>
@@ -157,6 +158,38 @@
             <h2>Capability Matrix</h2>
             <div id="capabilityMatrix" class="capability-grid"></div>
           </article>
+        </section>
+
+        <section id="missions" class="view">
+          <div class="mission-layout">
+            <article class="panel">
+              <p class="eyebrow">Executable mission runtime</p>
+              <h2>Mission Center</h2>
+              <form id="missionForm" class="seat-form">
+                <label>
+                  <span>User Goal</span>
+                  <textarea id="missionGoal" rows="4" placeholder="Example: Use FusionDesk to research competitors and build a landing page plan"></textarea>
+                </label>
+                <button class="primary" type="submit">Create Mission</button>
+              </form>
+            </article>
+            <article class="panel">
+              <h2>Current Mission</h2>
+              <div id="missionCurrent" class="mission-current">
+                <p class="muted">No mission loaded.</p>
+              </div>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Mission Tasks</h2>
+              <div id="missionTasks" class="mission-tasks">
+                <p class="muted">Create a mission to see task routing, assigned seats, statuses, and verification.</p>
+              </div>
+            </article>
+            <article class="panel wide-panel">
+              <h2>Saved Missions</h2>
+              <div id="missionList" class="mission-list"></div>
+            </article>
+          </div>
         </section>
 
         <section id="stack" class="view">

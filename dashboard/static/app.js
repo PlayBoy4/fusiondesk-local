@@ -6,6 +6,7 @@ const state = {
   recognition: null,
   sessionId: null,
   streaming: false,
+  currentMission: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -148,7 +149,7 @@ async function refresh() {
     $("flintStatus").textContent = data.flint.installed ? "Installed" : "Ready to add";
     $("flintInstall").textContent = data.flint.installCommand;
   }
-  await Promise.allSettled([loadTradeMaster(), loadCapabilities()]);
+  await Promise.allSettled([loadTradeMaster(), loadCapabilities(), loadMissions()]);
 }
 
 function introMessage() {
@@ -213,6 +214,50 @@ async function loadCapabilities() {
       <small>${escapeHtml((item.connectors || []).join(", "))}</small>
     </div>
   `).join("");
+}
+
+async function loadMissions() {
+  if (!$("missionList")) return;
+  const data = await api("/api/missions");
+  if (!data.ok) {
+    $("missionList").innerHTML = `<p class="muted">${escapeHtml(data.message || "Missions unavailable.")}</p>`;
+    return;
+  }
+  const missions = data.missions || [];
+  $("missionList").innerHTML = missions.map((mission) => `
+    <button class="mission-row" type="button" data-mission-id="${escapeHtml(mission.id)}">
+      <span>${escapeHtml(mission.status || "unknown")}</span>
+      <strong>${escapeHtml(mission.user_goal || mission.id)}</strong>
+      <small>${escapeHtml(mission.task_count || 0)} tasks · approval ${mission.approvals_required ? "needed" : "not needed"}</small>
+    </button>
+  `).join("") || `<p class="muted">No saved missions yet.</p>`;
+  document.querySelectorAll(".mission-row").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const mission = await api(`/api/missions/${encodeURIComponent(button.dataset.missionId)}`);
+      if (mission.ok) renderMission(mission.mission);
+    });
+  });
+}
+
+function renderMission(mission) {
+  state.currentMission = mission;
+  $("missionCurrent").innerHTML = `
+    <div class="metric"><span>ID</span><strong>${escapeHtml(mission.id)}</strong></div>
+    <div class="metric"><span>Status</span><strong>${escapeHtml(mission.status)}</strong></div>
+    <div class="metric"><span>Approval Needed</span><strong>${mission.approvals_required ? "Yes" : "No"}</strong></div>
+    <div class="metric"><span>Memory Path</span><strong>${escapeHtml(mission.memory_path || "Not saved")}</strong></div>
+    <p class="muted">${escapeHtml(mission.user_goal)}</p>
+  `;
+  $("missionTasks").innerHTML = (mission.tasks || []).map((task) => `
+    <div class="mission-task">
+      <div>
+        <span>${escapeHtml(task.id)}</span>
+        <strong>${escapeHtml(task.title)}</strong>
+        <small>${escapeHtml(task.seat)} · ${escapeHtml(task.model_key)} · ${escapeHtml(task.status)} · ${escapeHtml(task.verification_status)}</small>
+      </div>
+      <p>${escapeHtml(task.output || "No output yet.")}</p>
+    </div>
+  `).join("") || `<p class="muted">No tasks found for this mission.</p>`;
 }
 
 async function action(path, successPrefix) {
@@ -476,6 +521,29 @@ $("tradeReviewForm").addEventListener("submit", async (event) => {
   });
   $("tradeReviewResult").textContent = data.message || (data.ok ? "Trade review complete." : "Trade review failed.");
   if (data.ok) await loadTradeMaster();
+});
+
+$("missionForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const userGoal = $("missionGoal").value.trim();
+  if (!userGoal) {
+    toast("Add a mission goal first.");
+    return;
+  }
+  $("missionCurrent").innerHTML = `<p class="muted">Creating mission...</p>`;
+  $("missionTasks").innerHTML = `<p class="muted">Routing mission tasks...</p>`;
+  const data = await api("/api/missions", {
+    method: "POST",
+    body: JSON.stringify({ user_goal: userGoal }),
+  });
+  if (!data.ok) {
+    $("missionCurrent").innerHTML = `<p class="muted">Error: ${escapeHtml(data.message || "Mission failed.")}</p>`;
+    $("missionTasks").innerHTML = `<p class="muted">No mission tasks saved.</p>`;
+    return;
+  }
+  renderMission(data.mission);
+  $("missionGoal").value = "";
+  await loadMissions();
 });
 
 $("prompt").addEventListener("input", (event) => {

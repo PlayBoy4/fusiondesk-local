@@ -2,6 +2,7 @@
 
 from .connectors import Connector, ConnectorRequest, ConnectorResponse
 from .execution import ExecutionEngine
+from .mission_runtime import MissionRuntime
 from .registry import ConnectorCatalog, ModelCatalog, SkillRegistry
 from .seats import SeatAssignmentEngine
 
@@ -11,6 +12,7 @@ __all__ = [
     "ConnectorRequest",
     "ConnectorResponse",
     "ExecutionEngine",
+    "MissionRuntime",
     "ModelCatalog",
     "SeatAssignmentEngine",
     "SkillRegistry",

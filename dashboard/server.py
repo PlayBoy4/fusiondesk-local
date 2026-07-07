@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from fusiondesk.core import ExecutionEngine, SeatAssignmentEngine
+from fusiondesk.core import ExecutionEngine, MissionRuntime, SeatAssignmentEngine
 from fusiondesk.core.execution import model_registry_for_api, model_status
 
 STATIC = ROOT / "dashboard" / "static"
@@ -174,6 +174,7 @@ class SessionStore:
 
 
 SESSION_STORE = SessionStore(SESSION_STORE_PATH)
+MISSION_RUNTIME = MissionRuntime.load()
 TELEGRAM_SERVICE = None
 
 
@@ -497,6 +498,14 @@ def run_trademaster_review(payload: dict) -> dict:
         trace("trademaster.review.error", error=str(exc), traceback=traceback.format_exc())
         return {"ok": False, "message": f"Trade review failed: {exc}"}
     return {"ok": True, "message": f"Trade review saved: {saved}", "saved": str(saved), "trademaster": trademaster_status()}
+
+
+def mission_response(payload: dict, runtime: MissionRuntime | None = None) -> dict:
+    user_goal = str(payload.get("user_goal") or payload.get("goal") or payload.get("task") or "").strip()
+    if not user_goal:
+        return {"ok": False, "message": "user_goal is required."}
+    mission = (runtime or MISSION_RUNTIME).run_mission(user_goal)
+    return {"ok": True, "mission": mission}
 
 
 def clean_chat_text(text: str) -> str:
@@ -1185,6 +1194,17 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/capabilities":
             self.send_json(capability_matrix())
             return
+        if path == "/api/missions":
+            self.send_json({"ok": True, "missions": MISSION_RUNTIME.list_missions()})
+            return
+        if path.startswith("/api/missions/"):
+            mission_id = path.rsplit("/", 1)[-1]
+            mission = MISSION_RUNTIME.get_mission(mission_id)
+            if mission:
+                self.send_json({"ok": True, "mission": mission})
+            else:
+                self.send_json({"ok": False, "message": "Mission not found."}, 404)
+            return
         if path == "/api/trademaster/status":
             self.send_json(trademaster_status())
             return
@@ -1285,6 +1305,11 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/fusiondesk/assign":
             trace("router.fusiondesk.assign_endpoint", route_selected="fusiondesk_assign", skipped_local_model=True)
             result = seat_assignment(payload)
+            self.send_json(result, 200 if result.get("ok") else 400)
+            return
+        if path == "/api/missions":
+            trace("router.missions.create", route_selected="mission_runtime", skipped_local_model=True)
+            result = mission_response(payload)
             self.send_json(result, 200 if result.get("ok") else 400)
             return
         if path == "/api/command":
