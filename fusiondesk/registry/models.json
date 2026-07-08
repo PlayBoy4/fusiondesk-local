@@ -21,7 +21,7 @@
       "label": "ChatGPT",
       "seat": "gpt-4.1",
       "provider_model": "openai/gpt-4o",
-      "status": "needs_health_check",
+      "status": "active",
       "connector": "openrouter",
       "aliases": ["chatgpt", "gpt-4.1", "gpt-4o", "openai/gpt-4o"]
     },

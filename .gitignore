@@ -19,6 +19,9 @@ dashboard/logs/
 dashboard/runtime/
 dashboard/*.pid
 dashboard/__pycache__/
+flint/memory/executive/
+flint/memory/missions/
+flint/memory/reality_smoke/
 phone/claude-screen-to-phone/config.sh
 phone/claude-screen-to-phone/.venv/
 phone/claude-screen-to-phone/.env

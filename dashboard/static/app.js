@@ -156,7 +156,7 @@ async function refresh() {
 function introMessage() {
   return {
     role: "assistant",
-    content: "Local AI Console\nAsk FusionDesk, TradeMaster, Claude Code, or Codex from here. Refresh-safe sessions are stored by the backend.",
+    content: "FusionDesk Console\nFusionDesk commands use OpenRouter execution. Claude Code/Codex CLI routes are disabled unless explicitly enabled. Refresh-safe sessions are stored by the backend.",
   };
 }
 
@@ -276,12 +276,12 @@ function renderExecutiveDashboard(data) {
     ["Health", data.health == null ? "Not Connected" : `${data.health}%`],
     ["Running Jobs", data.running_jobs ?? 0],
     ["Active Missions", data.active_missions ?? 0],
-    ["Completed Tasks", data.completed_tasks ?? 0],
+    ["Completed Task Records", data.completed_tasks ?? 0],
     ["Failed Tasks", data.failed_tasks ?? 0],
     ["Cost Today", data.cost_today || "Not Connected"],
     ["Revenue Generated", data.revenue_generated || "Not Connected"],
-    ["Active Agents", data.active_agents ?? 0],
-    ["Registered Agents", data.registered_agents ?? 0],
+    ["Active Runtime Agents", data.active_agents ?? 0],
+    ["Registered Seats", data.registered_seats ?? data.registered_agents ?? 0],
   ];
   $("executiveMetrics").innerHTML = metrics.map(([label, value]) => `
     <div class="executive-card">
@@ -296,6 +296,12 @@ function renderExecutiveDashboard(data) {
     </div>
   `).join("");
   renderExecutiveCommand(data.last_command);
+  if (data.agent_status_note) {
+    $("executiveMetrics").insertAdjacentHTML(
+      "beforeend",
+      `<div class="executive-card wide-note"><span>Agent Runtime</span><strong>${escapeHtml(data.agent_status_note)}</strong></div>`
+    );
+  }
   $("executiveCommands").innerHTML = (data.commands || []).map((command) => `
     <button class="mission-row executive-command-row" type="button" data-command-id="${escapeHtml(command.id)}">
       <span>${escapeHtml(command.status || "unknown")}</span>

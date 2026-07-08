@@ -613,6 +613,14 @@ class ExecutionEngine:
         }
 
     def _candidate_models(self, plan: dict[str, Any]) -> list[str]:
+        preferred_models = []
+        for model in plan.get("preferred_models", []):
+            resolved = resolve_executable_model(str(model))
+            if resolved:
+                preferred_models.append(resolved)
+            else:
+                mark_model_skip(str(model))
+
         planned_models = []
         for assignment in plan.get("seat_assignments", []):
             model = assignment.get("model")
@@ -624,8 +632,9 @@ class ExecutionEngine:
             else:
                 mark_model_skip(str(model))
 
+        global_fallback = [] if plan.get("strict_preferred_models") else active_fallback_chain()
         candidates = []
-        for model in active_fallback_chain() + planned_models:
+        for model in preferred_models + global_fallback + planned_models:
             if model not in candidates:
                 candidates.append(model)
         return candidates

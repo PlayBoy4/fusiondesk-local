@@ -104,10 +104,10 @@ class ExecutiveCommandCenter:
         services = {
             "mission_planner": "Connected",
             "seat_engine": "Connected",
-            "workflow_engine": "Connected",
+            "workflow_engine": "MissionRuntime built-in; no standalone DAG engine",
             "memory_engine": "Connected",
-            "model_orchestrator": "Connected",
-            "execution_engine": "Connected",
+            "model_orchestrator": "Partial: OpenRouter registry/failover only",
+            "execution_engine": "Partial: OpenRouter execution only",
             "connector_layer": "Partial",
         }
         needed_connectors = ["local_filesystem"]
@@ -123,7 +123,7 @@ class ExecutiveCommandCenter:
             "outcome_type": observation["outcome_type"],
             "services": services,
             "needed_connectors": needed_connectors,
-            "notes": "Executive Command Center will delegate to Mission Runtime and mark unwired connectors as service requirements.",
+            "notes": "Executive Command Center delegates to Mission Runtime. Unwired connectors are requirements, not live workers.",
         }
         command["services"] = services
         command["workflow"] = [
@@ -250,8 +250,8 @@ class ExecutiveCommandCenter:
         completed_tasks = sum(1 for task in task_rows if task.get("status") == "complete")
         failed_tasks = sum(1 for task in task_rows if task.get("verification_status") == "failed")
         running_tasks = sum(1 for task in task_rows if task.get("status") not in {"complete", "failed"})
-        active_agents = len({task.get("seat") for task in task_rows if task.get("seat") and task.get("status") != "complete"})
-        registered_agents = len(self._load_seats())
+        active_agents = 0
+        registered_seats = len(self._load_seats())
         health_score = self._health_score(system_health or {})
         return {
             "ok": True,
@@ -263,16 +263,18 @@ class ExecutiveCommandCenter:
             "cost_today": "Not Connected",
             "revenue_generated": "Not Connected",
             "active_agents": active_agents,
-            "registered_agents": registered_agents,
+            "registered_agents": registered_seats,
+            "registered_seats": registered_seats,
+            "agent_status_note": "No persistent worker/agent runtime is connected. These counts come from saved mission task records and registered seats.",
             "last_mission": missions[0] if missions else None,
             "last_command": commands[0] if commands else None,
             "ceo_loop": ["Observe", "Decide", "Delegate", "Execute", "Verify", "Learn", "Report"],
             "services": {
                 "mission_planner": "Connected",
                 "seat_engine": "Connected",
-                "workflow_engine": "Connected",
+                "workflow_engine": "MissionRuntime built-in; no standalone DAG engine",
                 "memory_engine": "Connected",
-                "model_orchestrator": "Connected",
+                "model_orchestrator": "Partial: OpenRouter registry/failover only",
                 "connector_layer": "Partial",
                 "execution_engine": (system_health or {}).get("execution_engine_status", "Not Connected"),
             },

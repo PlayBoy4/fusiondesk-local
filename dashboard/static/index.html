@@ -61,12 +61,13 @@
         <section id="executive" class="view active">
           <div class="grid">
             <article class="panel wide-panel">
-              <p class="eyebrow">FusionDesk Executive OS</p>
+              <p class="eyebrow">FusionDesk Executive OS · partial runtime</p>
               <h2>Executive Dashboard</h2>
               <div id="executiveMetrics" class="executive-metrics"></div>
             </article>
             <article class="panel">
               <h2>Executive Command Center</h2>
+              <p class="muted">Runs MissionRuntime and saves memory. No persistent worker fleet is connected yet.</p>
               <form id="executiveForm" class="seat-form">
                 <label>
                   <span>Outcome</span>
@@ -100,8 +101,8 @@
                   <div class="avatar">CL</div>
                   <div class="message-body">
                     <div class="bubble">
-                      <strong>Local AI Console</strong>
-                      <p>Ask the local model here. Use the mic to speak a command when your browser allows voice input.</p>
+                      <strong>FusionDesk Console</strong>
+                      <p>FusionDesk commands use OpenRouter execution. Plain local chat needs the optional MLX/Qwen server.</p>
                     </div>
                   </div>
                 </div>
@@ -139,7 +140,7 @@
         <section id="trademaster" class="view">
           <div class="grid">
             <article class="panel">
-              <p class="eyebrow">Trading memory module</p>
+              <p class="eyebrow">Trading memory module · deterministic review runner</p>
               <h2>TradeMaster Stats</h2>
               <pre id="trademasterStats" class="memory-box">Loading TradeMaster stats...</pre>
             </article>
@@ -150,6 +151,7 @@
             </article>
             <article class="panel wide-panel">
               <h2>Trade Review Runner</h2>
+              <p class="muted">Writes real review files and stats. Live market data and Polygon analysis are not connected to this runner yet.</p>
               <form id="tradeReviewForm" class="seat-form">
                 <div class="form-grid">
                   <label>
@@ -199,8 +201,9 @@
         <section id="missions" class="view">
           <div class="mission-layout">
             <article class="panel">
-              <p class="eyebrow">Executable mission runtime</p>
+              <p class="eyebrow">Executable mission runtime · OpenRouter backed</p>
               <h2>Mission Center</h2>
+              <p class="muted">Creates saved mission records, calls the seat engine, executes through OpenRouter when configured, and writes Flint mission memory.</p>
               <form id="missionForm" class="seat-form">
                 <label>
                   <span>User Goal</span>
@@ -256,7 +259,7 @@
           <div class="grid">
             <article class="panel">
               <h2>Model Server</h2>
-              <p class="muted">MLX Anthropic-compatible endpoint on port 4000.</p>
+              <p class="muted">Optional local Qwen/MLX endpoint on port 4000. Not connected unless the server is installed, started, and local chat is enabled.</p>
               <div class="big-status"><span id="stackDot" class="dot"></span><strong id="stackStatus">Checking</strong></div>
               <div class="button-row">
                 <button id="startModelBtn" class="primary">Start</button>
@@ -275,8 +278,9 @@
         <section id="seats" class="view">
           <div class="seat-layout">
             <article class="panel">
-              <p class="eyebrow">FusionDesk routing core</p>
+              <p class="eyebrow">FusionDesk routing core · planning only</p>
               <h2>Dynamic Seat Assignment</h2>
+              <p class="muted">This returns the route plan. Execution happens through Chat, Missions, or Executive Command.</p>
               <form id="seatForm" class="seat-form">
                 <label>
                   <span>Task</span>
@@ -345,9 +349,9 @@
           <div class="brain-layout">
             <article class="panel flint-hero">
               <div>
-                <p class="eyebrow">Digital brain module</p>
+                <p class="eyebrow">Digital brain module · Not Connected</p>
                 <h2>Flint Memory Core</h2>
-                <p class="muted">Markdown notes, linked knowledge graph, infinite canvas, and optional local AI memory. It stays local, which fits this stack nicely.</p>
+                <p class="muted">Reference and installer only. FusionDesk writes JSON/markdown memory files, but live Flint sync, graph search, and Obsidian rewrite workflows are not connected yet.</p>
               </div>
               <div class="orbital" aria-hidden="true">
                 <span></span><span></span><span></span>
@@ -359,7 +363,7 @@
               <div class="button-row">
                 <button id="flintGithubBtn" class="primary">Open Flint GitHub</button>
               </div>
-              <p class="muted install-note">I added Flint as a dashboard module. I did not run its internet installer automatically.</p>
+              <p class="muted install-note">Reference only. I did not run its internet installer automatically.</p>
             </article>
             <article class="panel wide-panel">
               <h2>Install Command</h2>
@@ -369,10 +373,10 @@
             <article class="panel wide-panel">
               <h2>Why it belongs here</h2>
               <div class="feature-strip">
-                <span>Local vault</span>
-                <span>Note graph</span>
-                <span>Infinite canvas</span>
-                <span>AI memory</span>
+                <span>Reference only</span>
+                <span>Not Connected</span>
+                <span>Future graph</span>
+                <span>Future memory sync</span>
               </div>
             </article>
           </div>

@@ -70,6 +70,22 @@ class MultiFailureConnector:
         yield from ()
 
 
+class FableFailureConnector:
+    def __init__(self):
+        self.calls = []
+
+    def generate(self, *, model, messages, timeout):
+        self.calls.append(model)
+        if model == "anthropic/claude-fable-5":
+            error = RuntimeError("OpenRouter HTTP 503: unavailable")
+            error.code = 503
+            raise error
+        return f"answer from {model}"
+
+    def stream_generate(self, *, model, messages, timeout):
+        yield from ()
+
+
 def test_execution_engine_uses_primary_model_first_without_fallback():
     connector = SuccessfulConnector()
     engine = ExecutionEngine(connectors={"openrouter": connector})
@@ -82,6 +98,37 @@ def test_execution_engine_uses_primary_model_first_without_fallback():
     assert result["execution"]["fallback_used"] is False
     assert connector.calls == ["openai/gpt-4o-mini"]
     assert model_status()["active_model"] == "openai/gpt-4o-mini"
+
+
+def test_execution_engine_respects_preferred_model_before_global_fallback():
+    connector = SuccessfulConnector()
+    engine = ExecutionEngine(connectors={"openrouter": connector})
+    plan = {**PLAN, "preferred_models": ["claude-fable-5"]}
+
+    result = engine.execute(task="judge this mission", plan=plan)
+
+    assert result["ok"] is True
+    assert result["execution"]["model"] == "anthropic/claude-fable-5"
+    assert connector.calls == ["anthropic/claude-fable-5"]
+    assert model_status()["fallback_chain"] == ["anthropic/claude-fable-5"]
+
+
+def test_execution_engine_strict_preferred_models_fall_back_without_global_chain():
+    connector = FableFailureConnector()
+    engine = ExecutionEngine(connectors={"openrouter": connector})
+    plan = {
+        **PLAN,
+        "preferred_models": ["claude-fable-5", "gpt-4.1", "gemini-2.0-flash"],
+        "strict_preferred_models": True,
+    }
+
+    result = engine.execute(task="judge this mission", plan=plan)
+
+    assert result["ok"] is True
+    assert result["execution"]["model"] == "openai/gpt-4o"
+    assert connector.calls == ["anthropic/claude-fable-5", "openai/gpt-4o"]
+    assert model_status()["failed_models"] == ["anthropic/claude-fable-5"]
+    assert model_status()["fallback_chain"] == ["anthropic/claude-fable-5", "openai/gpt-4o"]
 
 
 def test_execution_engine_falls_back_only_after_primary_failure():

@@ -53,6 +53,7 @@ CONNECTOR_REGISTRY_PATH = ROOT / "fusiondesk" / "connectors" / "registry.json"
 TRADEMASTER_STATS = ROOT / "flint" / "memory" / "trading" / "stats.md"
 TRADEMASTER_LESSONS = ROOT / "flint" / "memory" / "trading" / "lessons" / "premium_reload_lessons.md"
 TRADEMASTER_REVIEWS = ROOT / "flint" / "memory" / "trading" / "reviews"
+REALITY_SMOKE_DIR = ROOT / "flint" / "memory" / "reality_smoke"
 
 HOST = os.environ.get("CLAUDE_DASHBOARD_HOST", "127.0.0.1")
 PORT = int(os.environ.get("CLAUDE_DASHBOARD_PORT", "4899"))
@@ -433,6 +434,132 @@ def backend_health() -> dict:
         "agentCliEnabled": FUSIONDESK_AGENT_CLI_ENABLED,
         "routes": ["fusiondesk", "trademaster", "claude_code", "codex", "local_qwen"],
         "telegram": telegram,
+    }
+
+
+def cli_binary_status(binary: str) -> dict:
+    if "/" in binary:
+        path = Path(binary)
+        return {"configured": str(path), "installed": path.exists(), "detail": "path exists" if path.exists() else "path missing"}
+    try:
+        proc = run(["/usr/bin/which", binary], timeout=3)
+        found = proc.stdout.strip()
+        return {"configured": binary, "installed": proc.returncode == 0 and bool(found), "detail": found or "not found on PATH"}
+    except Exception as exc:
+        return {"configured": binary, "installed": False, "detail": str(exc)}
+
+
+def model_registry_runtime_status() -> dict:
+    registry = model_registry_for_api()
+    rows = registry.get("models", [])
+
+    def find(*needles: str) -> dict:
+        lowered_needles = [needle.casefold() for needle in needles]
+        for row in rows:
+            haystack = " ".join(str(row.get(key) or "") for key in ("label", "seat", "provider_model")).casefold()
+            if any(needle in haystack for needle in lowered_needles):
+                return row
+        return {}
+
+    qwen_health = health()
+    claude_cli = cli_binary_status(CLAUDE_BIN)
+    codex_cli = cli_binary_status(CODEX_BIN)
+    return {
+        "openrouter": {
+            "status": "Configured" if os.environ.get("OPENROUTER_API_KEY") else "Not Connected",
+            "detail": "OPENROUTER_API_KEY present" if os.environ.get("OPENROUTER_API_KEY") else "OPENROUTER_API_KEY missing",
+        },
+        "claude": {
+            "status": "CLI available but disabled" if claude_cli["installed"] and not FUSIONDESK_AGENT_CLI_ENABLED else "CLI enabled" if claude_cli["installed"] else "Not Connected",
+            "detail": f"{claude_cli['detail']}; FUSIONDESK_AGENT_CLI_ENABLED={FUSIONDESK_AGENT_CLI_ENABLED}",
+        },
+        "codex": {
+            "status": "CLI available but disabled" if codex_cli["installed"] and not FUSIONDESK_AGENT_CLI_ENABLED else "CLI enabled" if codex_cli["installed"] else "Not Connected",
+            "detail": f"{codex_cli['detail']}; FUSIONDESK_AGENT_CLI_ENABLED={FUSIONDESK_AGENT_CLI_ENABLED}",
+        },
+        "deepseek": find("deepseek"),
+        "fable": find("fable"),
+        "glm": find("glm"),
+        "local_qwen": {
+            "status": "Connected" if qwen_health.get("status") == "ok" and LOCAL_CHAT_ENABLED else "Disabled" if not LOCAL_CHAT_ENABLED else "Offline",
+            "detail": f"health={qwen_health.get('status', 'offline')}; LOCAL_CHAT_ENABLED={LOCAL_CHAT_ENABLED}; model={MODEL}",
+        },
+    }
+
+
+def runtime_reality_audit() -> dict:
+    model_runtime = model_registry_runtime_status()
+    components = [
+        {
+            "component": "Executive Command",
+            "status": "Partial",
+            "real": "Delegates to MissionRuntime, saves executive JSON memory, and can reach OpenRouter through missions.",
+            "not_connected": "No independent CEO worker fleet, scheduler, or live autonomous agent pool.",
+            "files": ["dashboard/server.py", "fusiondesk/core/executive_command_center.py"],
+        },
+        {
+            "component": "Missions",
+            "status": "Real",
+            "real": "Creates mission records, assigns seats, calls ExecutionEngine, runs judge arbitration, and writes Flint mission JSON.",
+            "not_connected": "Tasks are generated records around model calls; no durable multi-process worker queue yet.",
+            "files": ["fusiondesk/core/mission_runtime.py", "flint/memory/missions"],
+        },
+        {
+            "component": "TradeMaster",
+            "status": "Partial",
+            "real": "Trade review runner writes review markdown, updates stats, and stores lessons.",
+            "not_connected": "Review grades and lesson extraction are deterministic template logic; Polygon/live market data is not wired into the runner.",
+            "files": ["fusiondesk/memory/trade_review_executor.py", "flint/memory/trading"],
+        },
+        {
+            "component": "Chat",
+            "status": "Real",
+            "real": "FusionDesk commands bypass local Qwen and execute through SeatAssignmentEngine + OpenRouter ExecutionEngine.",
+            "not_connected": "Plain local chat depends on optional MLX/Qwen and is disabled by default.",
+            "files": ["dashboard/server.py", "dashboard/static/app.js", "fusiondesk/core/execution.py"],
+        },
+        {
+            "component": "Seats",
+            "status": "Real",
+            "real": "SeatAssignmentEngine reads registries and returns selected skill, seats, connectors, models, confidence, and warnings.",
+            "not_connected": "Seat assignment alone is planning; execution only happens through Chat/Missions/Executive.",
+            "files": ["fusiondesk/core/seats.py", "fusiondesk/skills/registry.json"],
+        },
+        {
+            "component": "Stack / Model Start Button",
+            "status": "Partial" if MLX_PYTHON.exists() and MLX_SERVER.exists() else "Broken",
+            "real": "Start/Stop uses a real local MLX server process if the server files exist.",
+            "not_connected": "Local Qwen is not available unless MLX server files exist, port 4000 starts, and LOCAL_CHAT_ENABLED=true.",
+            "files": ["dashboard/server.py"],
+        },
+        {
+            "component": "Brain",
+            "status": "Not Connected",
+            "real": "Flint/Obsidian references and local memory folders exist.",
+            "not_connected": "No live Flint sync, Obsidian rewrite flow, graph query, or memory retrieval engine is wired to commands.",
+            "files": ["dashboard/static/index.html", "fusiondesk/references/tool-notes.json"],
+        },
+        {
+            "component": "Agent List / Active Agents",
+            "status": "Not Connected",
+            "real": "Registered seats exist in the registry.",
+            "not_connected": "No persistent agent runtime is running. Previous Active Agents value was derived from saved task records.",
+            "files": ["fusiondesk/registry/seats.json", "fusiondesk/core/executive_command_center.py"],
+        },
+        {
+            "component": "Completed Tasks Count",
+            "status": "Partial",
+            "real": "Count comes from saved mission task records.",
+            "not_connected": "It is not proof of real external task completion or active worker execution.",
+            "files": ["fusiondesk/core/executive_command_center.py"],
+        },
+    ]
+    return {
+        "ok": True,
+        "summary": "FusionDesk has real OpenRouter execution, mission persistence, seat assignment, chat routing, and deterministic TradeMaster file output. Several dashboard labels previously implied live agents/connectors that are registry-only or reference-only.",
+        "models": model_runtime,
+        "components": components,
+        "smoke_endpoint": "/api/reality/smoke",
     }
 
 
@@ -1250,6 +1377,98 @@ def model_generate_response(payload: dict) -> dict:
         }
 
 
+def run_reality_smoke(payload: dict, execution_engine: ExecutionEngine | None = None, output_dir: Path | None = None) -> dict:
+    task = str(payload.get("task") or payload.get("prompt") or "").strip()
+    if not task:
+        return {"ok": False, "message": "task is required.", "status": "bad_request"}
+    if not os.environ.get("OPENROUTER_API_KEY") and execution_engine is None:
+        return {
+            "ok": False,
+            "message": "OPENROUTER_API_KEY is required for a real model smoke test.",
+            "status": "not_connected",
+        }
+
+    plan = {
+        "task": task,
+        "selected_skill": "reality.smoke_test",
+        "mode": "SOLO",
+        "connectors": ["openrouter", "local_filesystem"],
+        "seat_assignments": [
+            {
+                "seat": "builder",
+                "model": "gpt-4.1-mini",
+                "reason": "Reality smoke uses a cheap active OpenRouter model and writes the result to disk.",
+            }
+        ],
+        "estimated_cost_tier": "cheapest",
+        "confidence": 1.0,
+        "warnings": [],
+    }
+    started = time.perf_counter()
+    engine = execution_engine or ExecutionEngine.load()
+    execution = engine.execute(
+        task=(
+            "Complete this FusionDesk reality smoke test. "
+            "Return one concise sentence describing the completed task.\n\n"
+            f"Task: {task}"
+        ),
+        plan=plan,
+        memory_context={
+            "recap": "Reality smoke test. This must be a real model execution result saved to a visible file.",
+            "tool_state": {
+                "openrouter": "active",
+                "local_filesystem": "active for writing the smoke result file",
+            },
+        },
+    )
+    latency_ms = round((time.perf_counter() - started) * 1000)
+    answer = str(execution.get("answer") or execution.get("message") or "").strip()
+    if not execution.get("ok") or not answer:
+        return {
+            "ok": False,
+            "message": execution.get("message") or "Smoke execution returned no answer.",
+            "status": "execution_failed",
+            "execution": execution.get("execution", execution),
+            "latency_ms": latency_ms,
+        }
+
+    target_dir = output_dir or REALITY_SMOKE_DIR
+    target_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}-reality-smoke.md"
+    output_path = target_dir / filename
+    execution_details = execution.get("execution") or {}
+    output_path.write_text(
+        "\n".join(
+            [
+                "# FusionDesk Reality Smoke Test",
+                "",
+                f"- task: {task}",
+                f"- status: complete",
+                f"- model: {execution_details.get('model') or 'unknown'}",
+                f"- connector: {execution_details.get('connector') or 'unknown'}",
+                f"- latency_ms: {latency_ms}",
+                "",
+                "## Model Output",
+                "",
+                answer,
+                "",
+            ]
+        )
+    )
+    return {
+        "ok": True,
+        "message": f"Reality smoke test completed and wrote {output_path}",
+        "status": "complete",
+        "task": task,
+        "model": execution_details.get("model"),
+        "connector": execution_details.get("connector"),
+        "output_path": str(output_path),
+        "text": answer,
+        "execution": execution_details,
+        "latency_ms": latency_ms,
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args) -> None:
         (LOG_DIR / "dashboard.log").open("a").write(f"{time.strftime('%H:%M:%S')} {fmt % args}\n")
@@ -1379,6 +1598,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/system/health":
             self.send_json(system_health())
+            return
+        if path == "/api/reality/audit":
+            self.send_json(runtime_reality_audit())
             return
         if path == "/api/executive":
             self.send_json(EXECUTIVE_COMMAND_CENTER.dashboard_snapshot(system_health()))
@@ -1519,6 +1741,11 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/model/generate":
             trace("router.model.generate", route_selected="openrouter_model_generate", skipped_local_model=True)
             result = model_generate_response(payload)
+            self.send_json(result, 200 if result.get("ok") else 502)
+            return
+        if path == "/api/reality/smoke":
+            trace("router.reality.smoke", route_selected="openrouter_reality_smoke", skipped_local_model=True)
+            result = run_reality_smoke(payload)
             self.send_json(result, 200 if result.get("ok") else 502)
             return
         if path == "/api/missions":

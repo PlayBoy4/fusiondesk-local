@@ -59,6 +59,10 @@ SEAT_TRAITS = {
     "brand_guard": ["writing_strength", "reliability", "context_length"],
     "knowledge_architect": ["context_length", "reasoning_strength", "writing_strength", "reliability"],
 }
+SEAT_MODEL_PREFERENCES = {
+    "risk_checker": ["deepseek-chat"],
+    "judge": ["claude-fable-5"],
+}
 TRAIT_ALIASES = {
     "reasoning": ["reasoning_strength"],
     "marketing": ["writing_strength", "research_strength"],
@@ -254,6 +258,14 @@ class SeatAssignmentEngine:
         cost_mode: str,
         quality_mode: str,
     ) -> dict[str, str]:
+        preferred = _first_available_model(SEAT_MODEL_PREFERENCES.get(seat, []), model_pool)
+        if preferred:
+            return {
+                "seat": seat,
+                "model": preferred["id"],
+                "reason": _preferred_seat_reason(preferred, seat, cost_mode, quality_mode),
+            }
+
         scored = [
             (
                 _score_model(
@@ -374,6 +386,19 @@ def _reason_for_assignment(
     trait_text = ", ".join(trait.replace("_", " ") for trait in best_traits) or "general capability"
     mode_text = cost_mode if cost_mode == quality_mode else f"{cost_mode}/{quality_mode}"
     return f"Best {seat} fit for {trait_text} under {mode_text} preference; score {score:.2f}"
+
+
+def _first_available_model(model_ids: list[str], model_pool: list[dict[str, Any]]) -> dict[str, Any] | None:
+    by_id = {str(model.get("id")): model for model in model_pool}
+    for model_id in model_ids:
+        if model_id in by_id:
+            return by_id[model_id]
+    return None
+
+
+def _preferred_seat_reason(model: dict[str, Any], seat: str, cost_mode: str, quality_mode: str) -> str:
+    mode_text = cost_mode if cost_mode == quality_mode else f"{cost_mode}/{quality_mode}"
+    return f"Preferred {seat} model for FusionDesk seat policy under {mode_text} preference: {model.get('display_name', model['id'])}"
 
 
 def _fallback_model_profile(model_id: str) -> dict[str, Any]:

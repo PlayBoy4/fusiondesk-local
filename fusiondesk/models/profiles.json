@@ -41,6 +41,19 @@
       "preferred_use_cases": ["highest quality reasoning", "judging", "risk review", "complex synthesis"]
     },
     {
+      "id": "claude-fable-5",
+      "display_name": "Claude Fable 5",
+      "coding_strength": 8,
+      "reasoning_strength": 10,
+      "research_strength": 8,
+      "writing_strength": 10,
+      "speed": 5,
+      "cost_tier": "premium",
+      "context_length": 9,
+      "reliability": 10,
+      "preferred_use_cases": ["judge seat", "final arbitration", "conflict resolution", "executive synthesis"]
+    },
+    {
       "id": "gpt-4.1-mini",
       "display_name": "GPT-4.1 Mini",
       "coding_strength": 7,

@@ -28,12 +28,14 @@ def test_trading_task_assignment():
         selected_skill="trademaster.live_market_analysis",
     )
 
-    seats = {assignment["seat"] for assignment in result["seat_assignments"]}
+    seats = {assignment["seat"]: assignment["model"] for assignment in result["seat_assignments"]}
     assert result["selected_skill"] == "trademaster.live_market_analysis"
     assert result["mode"] == "TRINITY"
     assert "polygon_io" in result["connectors"]
     assert "agent_reach" in result["connectors"]
-    assert {"researcher", "risk_checker", "judge"} <= seats
+    assert {"researcher", "risk_checker", "judge"} <= set(seats)
+    assert seats["risk_checker"] == "deepseek-chat"
+    assert seats["judge"] == "claude-fable-5"
 
 
 def test_marketing_task_assignment():
@@ -99,7 +101,41 @@ def test_premium_mode():
 
     models = {assignment["model"] for assignment in result["seat_assignments"]}
     assert result["estimated_cost_tier"] == "premium"
-    assert models & {"claude-opus", "gemini-2.5-pro"}
+    assert models & {"claude-opus", "gemini-2.5-pro", "claude-fable-5"}
+
+
+def test_judge_seat_prefers_fable_5():
+    result = engine().assign(
+        task="judge this final architecture decision",
+        selected_skill={
+            "id": "custom.judge",
+            "default_mode": "SOLO",
+            "required_seats": ["judge"],
+            "optional_seats": [],
+            "required_tools": ["openrouter"],
+            "preferred_model_traits": ["reasoning"],
+        },
+    )
+
+    assert result["seat_assignments"][0]["seat"] == "judge"
+    assert result["seat_assignments"][0]["model"] == "claude-fable-5"
+
+
+def test_risk_checker_seat_prefers_deepseek():
+    result = engine().assign(
+        task="risk check this trading thesis",
+        selected_skill={
+            "id": "custom.risk",
+            "default_mode": "SOLO",
+            "required_seats": ["risk_checker"],
+            "optional_seats": [],
+            "required_tools": ["openrouter"],
+            "preferred_model_traits": ["reasoning"],
+        },
+    )
+
+    assert result["seat_assignments"][0]["seat"] == "risk_checker"
+    assert result["seat_assignments"][0]["model"] == "deepseek-chat"
 
 
 def test_missing_model_fallback():
@@ -124,4 +160,3 @@ def test_unsupported_skill_fallback():
     assert result["mode"] == "SOLO"
     assert result["confidence"] < 0.6
     assert result["warnings"]
-
